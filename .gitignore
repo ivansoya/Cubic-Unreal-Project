@@ -1,7 +1,11 @@
 Binaries
+Build
+Package
 DerivedDataCache
 Intermediate
 Saved
+Content/Megascans
+Content/Data
 .vscode
 .vs
 *.VC.db
