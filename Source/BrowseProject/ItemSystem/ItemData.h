@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "BrowseProject/General/FIcon.h"
 #include "BrowseProject/General/Rarity.h"
-#include "AffixesData.h"
+#include "Affixes.h"
 #include "ItemData.generated.h"
 
 /**
@@ -49,10 +49,10 @@ struct BROWSEPROJECT_API FEquipmentDataRow : public FItemDataRow
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Main Affix"), Category = "Item Stats")
-	FAffixData MainAffix;
+	UAffix* MainAffix;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "List of Additional Affixes"), Category = "Item Stats")
-	TArray<FAffixData> Affixes;
+	TArray<UAffix*> Affixes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Tier of Equipment"), Category = "Item Stats")
 	int EnchanceLevel;

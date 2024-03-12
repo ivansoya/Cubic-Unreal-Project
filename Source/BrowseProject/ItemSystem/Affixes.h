@@ -3,45 +3,32 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AffixesData.h"
 #include "Affixes.generated.h"
 
 /**
  * Абстрактный класс всех аффиксов.
  * Содержит самые важные функции, которые необходимо переопределить в производных классах
  */
-class BROWSEPROJECT_API UAffix
+UCLASS(Abstract)
+class BROWSEPROJECT_API UAffix : public UDataAsset
 {
+	GENERATED_BODY()
 
 public:
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Affix Description on Item"))
-	FText Description;
+	virtual void Apply();
 
-public: 
+	virtual void Cancel();
 
-	/// <summary>
-	/// Функция для применения аффикса на персонажа
-	/// </summary>
-	/// <returns></returns>
-	virtual void Apply() = 0;
-
-	/// <summary>
-	/// Функция для отмены аффикса на персонаже
-	/// </summary>
-	/// <returns></returns>
-	virtual void Cancel() = 0;
-
-	/// <summary>
-	/// Функция возвращает текст описания аффикса
-	/// </summary>
-	/// <returns>Текст описания</returns>
-	virtual FText GetText() = 0;
+	virtual FText GetText();
 
 private:
 
-	UPROPERTY(VisibleAnywhere, Meta = (DisplayName = "Affix ID"))
+	UPROPERTY(EditAnywhere, Meta = (DisplayName = "Affix ID"))
 	int _ID;
+
+	UPROPERTY(EditAnywhere, Meta = (DisplayName = "Affix Description on Item"))
+	FText _Description;
 
 };
 
@@ -51,19 +38,61 @@ private:
  * Класс содержит данные о типе характеристики, которая есть у персонажа и ее значение.
  */
 UCLASS(Blueprintable)
-class BROWSEPROJECT_API UBasicAffix : public UObject, public UAffix
+class BROWSEPROJECT_API UBasicAffix : public UAffix
 {
 	GENERATED_BODY()
 
 public:
 
-	UFUNCTION(BlueprintCallable)
 	void Apply() override;
 
-	UFUNCTION(BlueprintCallable)
 	void Cancel() override;
 
-	UFUNCTION(BlueprintCallable)
+	FText GetText() override;
+
+private:
+
+	// Место для типа характеристики персонажа
+	
+	// Место для значения характеристики
+};
+
+/**
+ * Аффикс, который дает персонажу пассивный эффект
+ * Класс содержит данные об эффекте
+ */
+UCLASS(Blueprintable)
+class BROWSEPROJECT_API UEquipAffix : public UAffix
+{
+	GENERATED_BODY()
+
+public:
+
+	void Apply() override;
+
+	void Cancel() override;
+
+	FText GetText() override;
+
+private:
+
+};
+
+/**
+ * Аффикс, который дает персонажу специальный эффект, который активируется при каком либо событии
+ * Класс содержит данные об эффекте и привязанному событию
+ */
+UCLASS(Blueprintable)
+class BROWSEPROJECT_API UTriggerAffix : public UAffix
+{
+	GENERATED_BODY()
+
+public:
+
+	void Apply() override;
+
+	void Cancel() override;
+
 	FText GetText() override;
 
 private:
