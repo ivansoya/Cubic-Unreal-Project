@@ -10,7 +10,7 @@
 /**
  * Класс типизации элементального урона
  */
-UCLASS(Blueprintable)
+UCLASS()
 class BROWSEPROJECT_API UElementalDamageType : public UDataAsset
 {
 	GENERATED_BODY()
@@ -26,6 +26,23 @@ public:
 	// Место для эффекта, который накладывается при нанесении урона
 };
 
+/**
+ * Структура для определения урона оружием
+ */
+USTRUCT(BlueprintType)
+struct FWeaponDamage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Elemental Damage Type"))
+	UElementalDamageType* DamageType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Minimal Additional Damage to Roll"))
+	int MinDamage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Maximum Additional Damage to Roll"))
+	int MaxDamage;
+};
 
 UCLASS()
 class BROWSEPROJECT_API UElementalSystem : public UBlueprintFunctionLibrary

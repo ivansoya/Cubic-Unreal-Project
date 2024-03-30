@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ItemEnums.h"
+#include "Affixes.h"
 #include "BrowseProject/General/FIcon.h"
 #include "BrowseProject/General/Rarity.h"
-#include "Affixes.h"
+#include "BrowseProject/General/Element.h"
+#include "BrowseProject/Character/StatEnums.h"
 #include "ItemData.generated.h"
 
 /**
@@ -28,7 +31,7 @@ public:
 	FString Name;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item Description"), Category = "Appearance")
-	FString Description;
+	FText Description;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Rarity"), Category = "Item Stats")
 	URarity* Rarity;
@@ -37,29 +40,66 @@ public:
 	bool IsStackable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Cost of Item"), Category = "Item Stats")
-	int _Cost;
+	int Cost;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item ID", ExposeOnSpawn = "True"), Category = "Item Stats")
-	int _ID;
+	int ID;
 }; 
 
-USTRUCT(BlueprintType)
+// For not use in blueprints
+USTRUCT()
 struct BROWSEPROJECT_API FEquipmentDataRow : public FItemDataRow
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Main Affix"), Category = "Item Stats")
-	UAffix* MainAffix;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "List of Requirements"))
+	TMap<EStatKey, int> Requirements;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "List of Additional Affixes"), Category = "Item Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
+	ESlotType Slot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", meta = (DisplayName = "List of Additional Affixes"))
 	TArray<UAffix*> Affixes;
+};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Tier of Equipment"), Category = "Item Stats")
-	int EnchanceLevel;
+USTRUCT(BlueprintType)
+struct BROWSEPROJECT_API FArmorDataRow : public FEquipmentDataRow
+{
+	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item Class to Create"), Category = "Item Stats")
-	UClass* ItemClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", meta = (DisplayName = "Mesh On Equip"))
+	UStaticMesh* ComponentBodyMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Mesh On Equip"), Category = "Appearance")
-	UStaticMesh* ActiveMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", Meta = (DisplayName = "Key of Main Stat"))
+	EStatKey ArmorKeyStat;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", Meta = (DisplayName = "Stat Value"))
+	int ArmorValueStat;
+};
+
+USTRUCT(BlueprintType)
+struct BROWSEPROJECT_API FWeaponDataRow : public FEquipmentDataRow
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Mesh"))
+	UStaticMesh* WeaponMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Additional Slot"))
+	ESlotType AdditionalSlot = ESlotType::EST_LeftHand;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Damage"))
+	FWeaponDamage WeaponDamage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Class"))
+	EWeaponType WeaponClass;
+};
+
+USTRUCT(BlueprintType)
+struct BROWSEPROJECT_API FJewelryDataRow : public FEquipmentDataRow
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Jewelry Specials", Meta = (DisplayName = "Is Ring?"))
+	bool IsRing = false;
 };

@@ -37,7 +37,7 @@ private:
  * Данный аффикс дает фиксированный бонус к характеристике персонажу
  * Класс содержит данные о типе характеристики, которая есть у персонажа и ее значение.
  */
-UCLASS(Blueprintable)
+UCLASS()
 class BROWSEPROJECT_API UBasicAffix : public UAffix
 {
 	GENERATED_BODY()
@@ -61,7 +61,7 @@ private:
  * Аффикс, который дает персонажу пассивный эффект
  * Класс содержит данные об эффекте
  */
-UCLASS(Blueprintable)
+UCLASS()
 class BROWSEPROJECT_API UEquipAffix : public UAffix
 {
 	GENERATED_BODY()
@@ -82,7 +82,7 @@ private:
  * Аффикс, который дает персонажу специальный эффект, который активируется при каком либо событии
  * Класс содержит данные об эффекте и привязанному событию
  */
-UCLASS(Blueprintable)
+UCLASS()
 class BROWSEPROJECT_API UTriggerAffix : public UAffix
 {
 	GENERATED_BODY()

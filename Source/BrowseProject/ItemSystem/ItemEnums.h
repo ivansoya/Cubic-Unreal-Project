@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ItemEnums.generated.h"
 
 /**
  * Перечисление для типов предметов
@@ -29,10 +30,10 @@ enum class ESlotType : uint8
 	EST_Head = 2 UMETA(DisplayName = "Head"),
 	EST_Body = 3 UMETA(DisplayName = "Body"),
 	EST_Hands = 4 UMETA(DisplayName = "Hands"),
-	EST_Greaves = 5 UMETA(DisplayName = "Greaves"),
-	EST_Boots = 6 UMETA(DisplayName = "Boots"),
+	EST_Legs = 5 UMETA(DisplayName = "Legs"),
+	EST_Feet = 6 UMETA(DisplayName = "Feet"),
 	EST_Necklace = 7 UMETA(DisplayName = "Necklace"),
 	EST_Wrist = 8 UMETA(DisplayName = "Wrist"),
-	EST_Ring_1 = 9 UMETA(DisplayName = "Ring 1"),
-	EST_Ring_2 = 10 UMETA(DisplayName = "Ring 2"),
+	EST_Finger_1 = 9 UMETA(DisplayName = "Finger 1"),
+	EST_Finger_2 = 10 UMETA(DisplayName = "Finger 2"),
 };
