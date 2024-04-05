@@ -5,7 +5,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "BrowseProject/ItemSystem/WorldItem.h"
-#include "BrowseProject/Components/FunctionalityComponentsInterface.h"
+#include "BrowseProject/Character/InventoryInterface.h"
 
 // Sets default values
 APickUpCollider::APickUpCollider()
@@ -47,21 +47,18 @@ void APickUpCollider::Tick(float DeltaTime)
 
 void APickUpCollider::OverlapPickUpCharacter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	auto Character = Cast<IFunctionalityComponents>(OtherActor);
-	if (Character == nullptr) {
+	auto Inventory = Cast<IInventory>(OtherActor);
+	if (Inventory == nullptr) {
 		return;
 	}
 
-	auto CharacterInventory = IFunctionalityComponents::Execute_GetInventoryComponent(OtherActor);
-	if (CharacterInventory) {
-		if (_ItemToPickUp) {
-			//----------------------------------
-			// Место для добавление в инвентарь 
-			//----------------------------------
-			_ItemToPickUp->Destroy();
-		}
-		this->Destroy();
+	if (_ItemToPickUp && _ItemToPickUp->ItemObject) {
+		// Добавляем предмет в инвентарь Актера
+		_ItemToPickUp->ItemObject->AddToInventory(OtherActor);
+		_ItemToPickUp->Destroy();
 	}
+	// Удаление коллайдера
+	this->Destroy();
 }
 
 void APickUpCollider::OnPickUpColliderDestroyed(AActor* DestroyedActor)

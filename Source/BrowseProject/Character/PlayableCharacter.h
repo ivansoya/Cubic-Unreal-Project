@@ -4,15 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "BrowseProject/ItemSystem/ItemEnums.h"
-#include "BrowseProject/Components/FunctionalityComponentsInterface.h"
+#include "FunctionalityComponentsInterface.h"
+#include "InventoryInterface.h"
+#include "EquipmentInteface.h"
 #include "PlayableCharacter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
+class UEquipmentComponent;
 
 UCLASS()
-class BROWSEPROJECT_API APlayableCharacter : public ACharacter, public IFunctionalityComponents
+class BROWSEPROJECT_API APlayableCharacter : public ACharacter, public IFunctionalityComponents, public IInventory, public IEquipment
 {
 	GENERATED_BODY()
 
@@ -22,6 +24,9 @@ public:
 	APlayableCharacter();
 
 protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Components", meta = (DisplayName = "Equipment Component", AllowPrivateAccess = "true"))
+	TObjectPtr<UEquipmentComponent> _EquipmentComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Components", meta = (DisplayName = "Inventory Component", AllowPrivateAccess = "true"))
 	TObjectPtr<UInventoryComponent> _InventoryComponent;
@@ -47,6 +52,32 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// Объявление методов интерфейса Functionality Components
+
+	// Объявление методов интерфейса IEquipment
+
+	/// <summary>
+	/// Функция для одевания предмета на персонажа
+	/// </summary>
+	/// <param name="Item">Указатель на одеваемый предмет</param>
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool EquipItemOnCharacter(UEquipmentItem* Item, ESlotStatus SlotStatus);
+
+	/// <summary>
+	/// Функция для смены модели части персонажа
+	/// </summary>
+	/// <param name="SkeletalMesh">Скелетированная Модель</param>
+	/// <param name="Slot">Часть, которая будет заменена</param>
+	/// <returns></returns>
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool SetSkeletalMeshAsCharacterPart(USkeletalMesh* SkeletalMesh, ESlotType Slot);
+
+	// Объявление методов интерфейса Inventory
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	EStatusOnAdd AddEquipItemToInventory(UEquipmentItem* EquipItem);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	EStatusOnAdd AddBasicItemToInventory(UBasicItem* BasicItem);
+
 public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

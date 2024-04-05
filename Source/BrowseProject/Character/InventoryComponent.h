@@ -8,11 +8,35 @@
 
 class UItemTag;
 class UItemObject;
+class UBasicItem;
+class UEquipmentItem;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDisplayItemsSignature);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHideItemsSignature);
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+USTRUCT(BlueprintType)
+struct FBasicItemSlotInv {
+
+	GENERATED_BODY()
+
+public:
+
+	UBasicItem* Item;
+	int32 Count;
+};
+
+USTRUCT(BlueprintType)
+struct FEquipItemSlotInv {
+	GENERATED_BODY()
+
+public:
+
+	UEquipmentItem* Item;
+	bool isEquipped;
+
+};
+
+UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) ) 
 class BROWSEPROJECT_API UInventoryComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -43,6 +67,15 @@ protected:
 	UPROPERTY(BlueprintAssignable)
 	FOnHideItemsSignature _OnHideItemsDelegate;
 
+private:
+
+	// Key - ID of Items, Value - Item Slot Struct
+	UPROPERTY(VisibleAnywhere, Category = "Inventory", meta = (DisplayName = "List of Common Items"))
+	TMap<int32, FBasicItemSlotInv> _BasicItemList;
+
+	UPROPERTY(VisibleAnywhere, Category = "Inventory", meta = (DisplayName = "List of Equip Items"))
+	TArray<FEquipItemSlotInv> _EquipmentItemList;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -50,6 +83,12 @@ protected:
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UFUNCTION(BlueprintCallable)
+	void AddEquipItem(UEquipmentItem* Item);
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetCountOfEquipItems();
 
 	FOnDisplayItemsSignature& GetDisplaySignature();
 

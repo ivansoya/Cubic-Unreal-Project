@@ -59,10 +59,10 @@ void ULootComponent::SpawnCustomLoot(FTransform SpawnTransform)
 		if (Data != nullptr) {
 			// потенциально вылетный кусок кода
 			EWeaponType ewt = static_cast<FWeaponDataRow*>(Data)->WeaponClass;
-			if (ewt == EWeaponType::EWT_Staff || ewt == EWeaponType::EWT_Bow || ewt == EWeaponType::EWT_TwohandedSword) {
+			if (ewt == EWeaponType::STAFF || ewt == EWeaponType::BOW || ewt == EWeaponType::TWOHANDED_SWORD) {
 				ItemObject = NewObject<UTwoHanded>();
 			}
-			else if (ewt == EWeaponType::EWT_OnehandedSword || ewt == EWeaponType::EWT_Dagger) {
+			else if (ewt == EWeaponType::ONEHANDED_SWORD || ewt == EWeaponType::DAGGER) {
 				ItemObject = NewObject<UOneHanded>();
 			}
 			else {

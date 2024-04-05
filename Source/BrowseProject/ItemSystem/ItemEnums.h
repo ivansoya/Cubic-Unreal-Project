@@ -11,12 +11,12 @@
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
-	EWT_OnehandedSword = 0 UMETA(DisplayName = "Onehanded Sword"),
-	EWT_TwohandedSword = 1 UMETA(DisplayName = "Twohanded Sword"),
-	EWT_Bastard = 2 UMETA(DisplayName = "Bastard"),
-	EWT_Dagger = 3 UMETA(DisplayName = "Dagger"),
-	EWT_Bow = 4 UMETA(DisplayName = "Bow"),
-	EWT_Staff = 5 UMETA(DisplayName = "Staff"),
+	ONEHANDED_SWORD = 0 UMETA(DisplayName = "Onehanded Sword"),
+	TWOHANDED_SWORD = 1 UMETA(DisplayName = "Twohanded Sword"),
+	BASTARD = 2 UMETA(DisplayName = "Bastard"),
+	DAGGER = 3 UMETA(DisplayName = "Dagger"),
+	BOW = 4 UMETA(DisplayName = "Bow"),
+	STAFF = 5 UMETA(DisplayName = "Staff"),
 };
 
 /**
@@ -25,15 +25,27 @@ enum class EWeaponType : uint8
 UENUM(BlueprintType)
 enum class ESlotType : uint8
 {
-	EST_LeftHand = 0 UMETA(DisplayName = "Left Hand"),
-	EST_RightHand = 1 UMETA(DisplayName = "Right Hand"),
-	EST_Head = 2 UMETA(DisplayName = "Head"),
-	EST_Body = 3 UMETA(DisplayName = "Body"),
-	EST_Hands = 4 UMETA(DisplayName = "Hands"),
-	EST_Legs = 5 UMETA(DisplayName = "Legs"),
-	EST_Feet = 6 UMETA(DisplayName = "Feet"),
-	EST_Necklace = 7 UMETA(DisplayName = "Necklace"),
-	EST_Wrist = 8 UMETA(DisplayName = "Wrist"),
-	EST_Finger_1 = 9 UMETA(DisplayName = "Finger 1"),
-	EST_Finger_2 = 10 UMETA(DisplayName = "Finger 2"),
+	LEFT_HAND = 0 UMETA(DisplayName = "Left Hand"),
+	RIGHT_HAND = 1 UMETA(DisplayName = "Right Hand"),
+	HEAD = 2 UMETA(DisplayName = "Head"),
+	BODY = 3 UMETA(DisplayName = "Body"),
+	HANDS = 4 UMETA(DisplayName = "Hands"),
+	LEGS = 5 UMETA(DisplayName = "Legs"),
+	FEET = 6 UMETA(DisplayName = "Feet"),
+	NECKLACE = 7 UMETA(DisplayName = "Necklace"),
+	WRIST = 8 UMETA(DisplayName = "Wrist"),
+	FINGER_1 = 9 UMETA(DisplayName = "Finger 1"),
+	FINGER_2 = 10 UMETA(DisplayName = "Finger 2"),
+};
+
+/**
+ * Перечисление статусов слотов экипировки
+ */
+UENUM(BlueprintType)
+enum class ESlotStatus : uint8
+{
+	BLOCKED = 0 UMETA(DisplayName = "Blocked"),
+	DEFAULT = 1 UMETA(DisplayName = "Default"),
+	SESQUIALTERAL = 2 UMETA(DisplayName = "Sesquialteral"),
+	TWOHANDED = 3 UMETA(DisplayName = "Twohanded"),
 };

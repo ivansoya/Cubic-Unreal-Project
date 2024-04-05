@@ -1,10 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ItemObjects.h"
+#include "BrowseProject/Character/InventoryInterface.h"
+#include "BrowseProject/Character/EquipmentInteface.h"
 
-void UBasicItem::AddToInventory()
+void UBasicItem::AddToInventory(AActor* PlayableActor)
 {
-
+	if (Cast<IInventory>(PlayableActor)) {
+		IInventory::Execute_AddBasicItemToInventory(PlayableActor, this);
+	}
 }
 
 bool UBasicItem::SetDataToObject(FItemDataRow* Data)
@@ -23,17 +27,24 @@ bool UBasicItem::SetDataToObject(FItemDataRow* Data)
 	return true;
 }
 
-bool UEquipment::CheckRequirements()
+void UEquipmentItem::AddToInventory(AActor* PlayableActor)
+{
+	if (Cast<IInventory>(PlayableActor)) {
+		IInventory::Execute_AddEquipItemToInventory(PlayableActor, this);
+	}
+}
+
+bool UEquipmentItem::CheckRequirements()
 {
 	return true;
 }
 
-void UEquipment::Equip()
+void UEquipmentItem::Equip(AActor* Character)
 {
-
+	return;
 }
 
-bool UEquipment::SetDataToObject(FItemDataRow* Data)
+bool UEquipmentItem::SetDataToObject(FItemDataRow* Data)
 {
 	UBasicItem::SetDataToObject(Data);
 	FEquipmentDataRow* t;
@@ -49,14 +60,22 @@ bool UEquipment::SetDataToObject(FItemDataRow* Data)
 	return true;
 }
 
-void UArmor::Equip()
+ESlotType UEquipmentItem::GetItemSlot() const
 {
-	UEquipment::Equip();
+	return _Slot;
+}
+
+void UArmor::Equip(AActor* Character)
+{
+	if (Cast<IEquipment>(Character)) {
+		IEquipment::Execute_EquipItemOnCharacter(Character, this, ESlotStatus::DEFAULT);
+		IEquipment::Execute_SetSkeletalMeshAsCharacterPart(Character, ComponentBodyMesh, _Slot);
+	}
 }
 
 bool UArmor::SetDataToObject(FItemDataRow* Data)
 {
-	UEquipment::SetDataToObject(Data);
+	UEquipmentItem::SetDataToObject(Data);
 	FArmorDataRow* t;
 	try {
 		t = static_cast<FArmorDataRow*>(Data);
@@ -70,14 +89,14 @@ bool UArmor::SetDataToObject(FItemDataRow* Data)
 	return true;
 }
 
-void UWeapon::Equip()
+void UWeapon::Equip(AActor* Character)
 {
-	UEquipment::Equip();
+	UEquipmentItem::Equip(Character);
 }
 
 bool UWeapon::SetDataToObject(FItemDataRow* Data)
 {
-	UEquipment::SetDataToObject(Data);
+	UEquipmentItem::SetDataToObject(Data);
 	FWeaponDataRow* t;
 	try {
 		t = static_cast<FWeaponDataRow*>(Data);
@@ -91,34 +110,34 @@ bool UWeapon::SetDataToObject(FItemDataRow* Data)
 	return true;
 }
 
-void UOneHanded::Equip()
+void UOneHanded::Equip(AActor* Character)
 {
-	UEquipment::Equip();
+	UEquipmentItem::Equip(Character);
 }
 
-void UTwoHanded::Equip()
+void UTwoHanded::Equip(AActor* Character)
 {
-	UEquipment::Equip();
+	UEquipmentItem::Equip(Character);
 }
 
-void USesquialteral::Equip()
+void USesquialteral::Equip(AActor* Character)
 {
-	UEquipment::Equip();
+	UEquipmentItem::Equip(Character);
 }
 
-void UJewelry::Equip() 
+void UJewelry::Equip(AActor* Character)
 {
-	UEquipment::Equip();
+	UEquipmentItem::Equip(Character);
 }
 
 bool UJewelry::SetDataToObject(FItemDataRow* Data)
 {
-	return UEquipment::SetDataToObject(Data);
+	return UEquipmentItem::SetDataToObject(Data);
 }
 
-void URing::Equip()
+void URing::Equip(AActor* Character)
 {
-	UEquipment::Equip();
+	UEquipmentItem::Equip(Character);
 }
 
 bool URing::SetDataToObject(FItemDataRow* Data)

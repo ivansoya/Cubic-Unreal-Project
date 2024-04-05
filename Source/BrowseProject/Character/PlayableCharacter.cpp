@@ -3,8 +3,10 @@
 
 #include "PlayableCharacter.h"
 #include "InventoryComponent.h"
-#include "BrowseProject/ItemSystem/ItemEnums.h"
+#include "EquipmentComponent.h"
+#include "BrowseProject/ItemSystem/ItemObjects.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 
 // Sets default values
@@ -23,9 +25,10 @@ APlayableCharacter::APlayableCharacter()
 	_SpringArm = CreateDefaultSubobject<USpringArmComponent>("Spring Arm");
 	_SpringArm->SetWorldRotation(FRotator(-50, 0, 0));
 	_SpringArm->TargetArmLength = 1400;
-	_SpringArm->bInheritPitch = true;
-	_SpringArm->bInheritRoll = true;
-	_SpringArm->bInheritYaw = true;
+	_SpringArm->bUsePawnControlRotation = false;
+	_SpringArm->bInheritPitch = false;
+	_SpringArm->bInheritRoll = false;
+	_SpringArm->bInheritYaw = false;
 	_SpringArm->SetupAttachment(RootComponent);
 
 	_CameraComponent = CreateDefaultSubobject<UCameraComponent>("Camera");
@@ -34,11 +37,11 @@ APlayableCharacter::APlayableCharacter()
 	_CameraComponent->SetupAttachment(_SpringArm);
 
 	TMap<ESlotType, FName> AllTypeMeshes = {
-		{ESlotType::EST_Head, "Head"},
-		{ESlotType::EST_Body, "Body"},
-		{ESlotType::EST_Hands, "Hands"},
-		{ESlotType::EST_Legs, "Legs"},
-		{ESlotType::EST_Feet, "Feet"},
+		{ESlotType::HEAD, "Head"},
+		{ESlotType::BODY, "Body"},
+		{ESlotType::HANDS, "Hands"},
+		{ESlotType::LEGS, "Legs"},
+		{ESlotType::FEET, "Feet"},
 	};
 
 	for (TPair<ESlotType, FName> Slot : AllTypeMeshes) {
@@ -68,6 +71,11 @@ APlayableCharacter::APlayableCharacter()
 		
 	}
 
+	_EquipmentComponent = CreateDefaultSubobject<UEquipmentComponent>("Equipment Component");
+	if (_EquipmentComponent) {
+		
+	}
+
 }
 
 //--------------------------------------
@@ -82,6 +90,56 @@ UInventoryComponent* APlayableCharacter::GetInventoryComponent_Implementation()
 
 //-------------------------------------
 
+//--------------------------------------
+// Реализация методов интерфейса Equipment
+//--------------------------------------
+
+// Функция для одевания предмета на персонажа
+bool APlayableCharacter::EquipItemOnCharacter_Implementation(UEquipmentItem* Item, ESlotStatus SlotStatus)
+{
+	if (Item == nullptr) {
+		return false;
+	}
+	if (_EquipmentComponent->SetItemInSlot(Item->GetItemSlot(), Item, SlotStatus).IsSuccessfully == true) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool APlayableCharacter::SetSkeletalMeshAsCharacterPart_Implementation(USkeletalMesh* SkeletalMesh, ESlotType Slot)
+{
+	auto t = *_CharacterParts.Find(Slot);
+	if (SkeletalMesh) {
+		t->SetSkeletalMesh(SkeletalMesh);
+		return true;
+	}
+	return false;
+}
+
+//--------------------------------------
+// Реализация методов интерфейса Inventory
+//--------------------------------------
+
+EStatusOnAdd APlayableCharacter::AddEquipItemToInventory_Implementation(UEquipmentItem* EquipItem)
+{
+	if (EquipItem) {
+		_InventoryComponent->AddEquipItem(EquipItem);
+		return EStatusOnAdd::ADDED;
+	}
+	else {
+		return EStatusOnAdd::NULL_ERROR;
+	}
+}
+
+EStatusOnAdd APlayableCharacter::AddBasicItemToInventory_Implementation(UBasicItem* BasicItem)
+{
+	return EStatusOnAdd::NULL_ERROR;
+}
+
+//-------------------------------------
+// 
 // Called when the game starts or when spawned
 void APlayableCharacter::BeginPlay()
 {

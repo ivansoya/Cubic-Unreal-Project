@@ -68,7 +68,7 @@ struct BROWSEPROJECT_API FArmorDataRow : public FEquipmentDataRow
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", meta = (DisplayName = "Mesh On Equip"))
-	UStaticMesh* ComponentBodyMesh;
+	USkeletalMesh* ComponentBodyMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", Meta = (DisplayName = "Key of Main Stat"))
 	EStatKey ArmorKeyStat;
@@ -86,7 +86,7 @@ struct BROWSEPROJECT_API FWeaponDataRow : public FEquipmentDataRow
 	UStaticMesh* WeaponMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Additional Slot"))
-	ESlotType AdditionalSlot = ESlotType::EST_LeftHand;
+	ESlotType AdditionalSlot = ESlotType::LEFT_HAND;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Damage"))
 	FWeaponDamage WeaponDamage;

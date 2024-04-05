@@ -3,7 +3,7 @@
 
 #include "WorldItem.h"
 #include "Components/WidgetComponent.h"
-#include "BrowseProject/Components/FunctionalityComponentsInterface.h"
+#include "BrowseProject/Character/FunctionalityComponentsInterface.h"
 #include "BrowseProject/Character/InventoryComponent.h"
 #include "BrowseProject/UI/ItemTag.h"
 

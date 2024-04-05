@@ -2,6 +2,7 @@
 
 
 #include "InventoryComponent.h"
+#include "EquipmentComponent.h"
 #include "BrowseProject/UI/ItemTag.h"
 
 // Sets default values for this component's properties
@@ -39,16 +40,30 @@ TSubclassOf<UItemTag> UInventoryComponent::GetClassOfItemTag()
 	return _UsedTypeOfItemTag;
 }
 
-void UInventoryComponent::DisplayItems() const {
+void UInventoryComponent::DisplayItems() const 
+{
 	if (_OnDisplayItemsDelegate.IsBound()) {
 		_OnDisplayItemsDelegate.Broadcast();
 	}
 }
 
-void UInventoryComponent::HideItems() const {
+void UInventoryComponent::HideItems() const 
+{
 	if (_OnHideItemsDelegate.IsBound()) {
 		_OnHideItemsDelegate.Broadcast();
 	}
+}
+
+void UInventoryComponent::AddEquipItem(UEquipmentItem* Item) 
+{
+	if (Item) {
+		_EquipmentItemList.Add(FEquipItemSlotInv(Item, false));
+	}
+}
+
+int32 UInventoryComponent::GetCountOfEquipItems()
+{
+	return _EquipmentItemList.Num();
 }
 
 FOnDisplayItemsSignature& UInventoryComponent::GetDisplaySignature()

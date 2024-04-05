@@ -6,6 +6,7 @@
 #include "ItemData.h"
 #include "ItemObjects.generated.h"
 
+
 /**
  * Класс, который используется для объектов предметов, с которыми можно взаимодействовать.
  * Манипулирование предметами осуществляется через интерфейс, данные классы не могут иметь игровую модель.
@@ -17,41 +18,41 @@ class BROWSEPROJECT_API UBasicItem : public UObject
 
 public:
 
-	UPROPERTY(EditAnywhere, Category = "Item Appearance", Meta = (DisplayName = "Item Name"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Appearance", Meta = (DisplayName = "Item Name"));
 	FString Name;
 
-	UPROPERTY(EditAnywhere, Category = "Item Appearance", Meta = (DisplayName = "Item Description"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Appearance", Meta = (DisplayName = "Item Description"));
 	FText Description;
 
-	UPROPERTY(EditAnywhere, Category = "Item Appearance", Meta = (DisplayName = "Item Icon Set"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Appearance", Meta = (DisplayName = "Item Icon Set"));
 	FIcon IconSet;
 
-	UPROPERTY(EditAnywhere, Category = "Item Appearance", Meta = (DisplayName = "Item Rarity"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Appearance", Meta = (DisplayName = "Item Rarity"));
 	URarity* Rarity;
 
-	UPROPERTY(EditAnywhere, Category = "Item Appearance", Meta = (DisplayName = "World Mesh of Item"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Appearance", Meta = (DisplayName = "World Mesh of Item"));
 	UStaticMesh* WorldMesh;
 
 public:
 
 	UFUNCTION(BlueprintCallable)
-	virtual void AddToInventory();
+	virtual void AddToInventory(AActor* PlayableActor);
 
 	// Функция для считывания данных из структуры
 	virtual bool SetDataToObject(FItemDataRow* Data);
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, Category = "Item Stats", Meta = (DisplayName = "Cost"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Cost"));
 	int _Cost;
 
-	UPROPERTY(VisibleAnywhere, Category = "Item Stats", Meta = (DisplayName = "Can be Stacked"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Can be Stacked"));
 	bool _IsStackable;
 
-	UPROPERTY(VisibleAnywhere, Category = "Item Stats", Meta = (DisplayName = "Count of Stacked Item", EditCondition = "_IsStackable == true"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Count of Stacked Item", EditCondition = "_IsStackable == true"));
 	int _StackedCount;
 
-	UPROPERTY(VisibleAnywhere, Category = "Item Stats", Meta = (DisplayName = "Item ID"));
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item ID"));
 	int _ID;
 
 private:
@@ -60,12 +61,14 @@ private:
 
 
 UCLASS(NotBlueprintable, Abstract)
-class BROWSEPROJECT_API UEquipment : public UBasicItem
+class BROWSEPROJECT_API UEquipmentItem : public UBasicItem
 {
 
 	GENERATED_BODY()
 
 public:
+
+	virtual void AddToInventory(AActor* PlayableActor) override;
 
 	// Функция для определения, можно ли надеть предмет на персонажа
 	UFUNCTION(BlueprintCallable)
@@ -73,10 +76,12 @@ public:
 
 	// Функция для одевания предмета на персонажа
 	UFUNCTION(BlueprintCallable)
-	virtual void Equip();
+	virtual void Equip(AActor* Chacter);
 
 	// Функция для считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
+
+	ESlotType GetItemSlot() const;
 
 protected:
 
@@ -98,7 +103,7 @@ private:
 /// Класс для брони
 /// </summary>
 UCLASS(Blueprintable)
-class BROWSEPROJECT_API UArmor : public UEquipment
+class BROWSEPROJECT_API UArmor : public UEquipmentItem
 {
 
 	GENERATED_BODY()
@@ -106,12 +111,12 @@ class BROWSEPROJECT_API UArmor : public UEquipment
 public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Item Appearance", Meta = (DisplayName = "Body Mesh"))
-	UStaticMesh* ComponentBodyMesh;
+	USkeletalMesh* ComponentBodyMesh;
 
 public:
 
 	// Функция для одевания предмета на персонажа
-	void Equip() override;
+	void Equip(AActor* Character) override;
 
 	// Функция для считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
@@ -133,7 +138,7 @@ private:
 /// Наследуемый классы оружия - игровые объекты этого оружия.
 /// </summary>
 UCLASS(NotBlueprintable, Abstract)
-class BROWSEPROJECT_API UWeapon : public UEquipment
+class BROWSEPROJECT_API UWeapon : public UEquipmentItem
 {
 
 	GENERATED_BODY()
@@ -146,7 +151,7 @@ public:
 public:
 
 	// Функция для одевания предмета на персонажа
-	void Equip() override;
+	void Equip(AActor* Character) override;
 
 	// Функция для считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
@@ -177,7 +182,7 @@ class BROWSEPROJECT_API UTwoHanded : public UWeapon
 public:
 
 	// Функция для одевания предмета на персонажа
-	void Equip() override;
+	void Equip(AActor* Character) override;
 
 protected:
 
@@ -201,7 +206,7 @@ class BROWSEPROJECT_API USesquialteral : public UWeapon
 public:
 
 	// Функция для одевания предмета на персонажа
-	void Equip() override;
+	void Equip(AActor* Character) override;
 
 protected:
 
@@ -224,7 +229,7 @@ class BROWSEPROJECT_API UOneHanded : public UWeapon
 public:
 
 	// Функция для одевания предмета на персонажа
-	void Equip() override;
+	void Equip(AActor* Character) override;
 
 protected:
 
@@ -238,7 +243,7 @@ private:
 /// Класс для бижутерии.
 /// </summary>
 UCLASS(Blueprintable)
-class BROWSEPROJECT_API UJewelry : public UEquipment
+class BROWSEPROJECT_API UJewelry : public UEquipmentItem
 {
 
 	GENERATED_BODY()
@@ -246,7 +251,7 @@ class BROWSEPROJECT_API UJewelry : public UEquipment
 public:
 
 	// Функция для одевания предмета на персонажа
-	void Equip() override;
+	void Equip(AActor* Character) override;
 
 	// Функция для считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
@@ -272,7 +277,7 @@ class BROWSEPROJECT_API URing : public UJewelry
 public:
 
 	// Функция для одевания предмета на персонажа
-	void Equip() override;
+	void Equip(AActor* Character) override;
 
 	// Функция для считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
