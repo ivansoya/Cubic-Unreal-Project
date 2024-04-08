@@ -32,7 +32,7 @@ protected:
 	TObjectPtr<UInventoryComponent> _InventoryComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Components", meta = (DisplayName = "Character Parts List", AllowPrivateAccess = "true"))
-	TMap<ESlotType, TObjectPtr<USkeletalMeshComponent>> _CharacterParts;
+	TMap<ESlotType, USkeletalMeshComponent*> _CharacterParts;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Components", meta = (DisplayName = "Spring Arm", AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> _SpringArm;
@@ -43,6 +43,10 @@ protected:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void PostInitializeComponents() override;
+
+	virtual void PreRegisterAllComponents() override;
 
 public:	
 	// Called every frame
@@ -82,4 +86,12 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	UInventoryComponent* GetInventoryComponent();
+
+private:
+
+	// Компонент сцены, на который крепятся части тела актера
+	TObjectPtr<USceneComponent> _CharacterPartsSceneComponent;
+
+	// Словарь с именами моделей частей тела актера
+	TMap<ESlotType, FName> _AllTypeMeshes;
 };

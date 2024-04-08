@@ -21,7 +21,10 @@ struct FBasicItemSlotInv {
 
 public:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UBasicItem* Item;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 Count;
 };
 
@@ -31,7 +34,10 @@ struct FEquipItemSlotInv {
 
 public:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UEquipmentItem* Item;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool isEquipped;
 
 };
@@ -89,6 +95,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetCountOfEquipItems();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FEquipItemSlotInv> GetEquipmentItemList() const;
 
 	FOnDisplayItemsSignature& GetDisplaySignature();
 

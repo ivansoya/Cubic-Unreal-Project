@@ -61,6 +61,11 @@ void UInventoryComponent::AddEquipItem(UEquipmentItem* Item)
 	}
 }
 
+TArray<FEquipItemSlotInv> UInventoryComponent::GetEquipmentItemList() const
+{
+	return _EquipmentItemList;
+}
+
 int32 UInventoryComponent::GetCountOfEquipItems()
 {
 	return _EquipmentItemList.Num();

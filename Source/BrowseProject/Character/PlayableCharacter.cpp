@@ -18,9 +18,13 @@ APlayableCharacter::APlayableCharacter()
 	GetMesh()->DestroyComponent();
 	GetMesh()->SetActive(false);
 
-	TObjectPtr<USceneComponent> CharacterParts = CreateDefaultSubobject<USceneComponent>("List of Character Parts");
-	CharacterParts->SetRelativeTransform(FTransform(FRotator(), FVector3d(0, 0, -GetDefaultHalfHeight())));
-	CharacterParts->SetupAttachment(RootComponent);
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+	bUseControllerRotationYaw = false;
+
+	_CharacterPartsSceneComponent = CreateDefaultSubobject<USceneComponent>("List of Character Parts");
+	_CharacterPartsSceneComponent->SetRelativeTransform(FTransform(FRotator(), FVector3d(0, 0, -GetDefaultHalfHeight())));
+	_CharacterPartsSceneComponent->SetupAttachment(RootComponent);
 
 	_SpringArm = CreateDefaultSubobject<USpringArmComponent>("Spring Arm");
 	_SpringArm->SetWorldRotation(FRotator(-50, 0, 0));
@@ -36,7 +40,7 @@ APlayableCharacter::APlayableCharacter()
 	_CameraComponent->FieldOfView = 55.0;
 	_CameraComponent->SetupAttachment(_SpringArm);
 
-	TMap<ESlotType, FName> AllTypeMeshes = {
+	_AllTypeMeshes = {
 		{ESlotType::HEAD, "Head"},
 		{ESlotType::BODY, "Body"},
 		{ESlotType::HANDS, "Hands"},
@@ -44,8 +48,8 @@ APlayableCharacter::APlayableCharacter()
 		{ESlotType::FEET, "Feet"},
 	};
 
-	for (TPair<ESlotType, FName> Slot : AllTypeMeshes) {
-		TObjectPtr<USkeletalMeshComponent> SK_Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(Slot.Value);
+	for (TPair<ESlotType, FName> Slot : _AllTypeMeshes) {
+		USkeletalMeshComponent* SK_Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(Slot.Value);
 		if (SK_Mesh)
 		{
 			SK_Mesh->AlwaysLoadOnClient = true;
@@ -61,8 +65,8 @@ APlayableCharacter::APlayableCharacter()
 			SK_Mesh->SetCanEverAffectNavigation(false);
 			SK_Mesh->SetRelativeRotation(FRotator(0, -90, 0));
 
-			SK_Mesh->SetupAttachment(CharacterParts);
-			_CharacterParts.Add(TPair<ESlotType, TObjectPtr<USkeletalMeshComponent>>(Slot.Key, SK_Mesh));
+			SK_Mesh->SetupAttachment(_CharacterPartsSceneComponent);
+			_CharacterParts.Add(TPair<ESlotType, USkeletalMeshComponent*>(Slot.Key, SK_Mesh));
 		}
 	}
 
@@ -76,6 +80,16 @@ APlayableCharacter::APlayableCharacter()
 		
 	}
 
+}
+
+void APlayableCharacter::PreRegisterAllComponents()
+{
+	Super::PreRegisterAllComponents();
+}
+
+void APlayableCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
 }
 
 //--------------------------------------
