@@ -4,7 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "BrowseProject/ItemSystem/ItemEnums.h"
 #include "InventoryInterface.generated.h"
+
+UDELEGATE()
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAddItemToInventorySignature, UBasicItem*, AddedItem);
+UDELEGATE()
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRemoveItemFromInventorySignature, UBasicItem*, RemovedItem);
 
 class UEquipmentItem;
 class UBasicItem;
@@ -36,6 +42,10 @@ class BROWSEPROJECT_API IInventory
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
+	// Удаляет предмет экипировки из инвентаря по поиску
+	UFUNCTION(BlueprintNativeEvent)
+	void RemoveEquipItemFromInventoryByFind(UEquipmentItem* RemoveItem);
+
 	// Добавляет предмет экипировки в инвентарь
 	UFUNCTION(BlueprintNativeEvent)
 	EStatusOnAdd AddEquipItemToInventory(UEquipmentItem* EquipItem);
@@ -43,4 +53,8 @@ public:
 	// Добавляет складываемый предмет в инвентарь
 	UFUNCTION(BlueprintNativeEvent)
 	EStatusOnAdd AddBasicItemToInventory(UBasicItem* BasicItem);
+
+	virtual FOnAddItemToInventorySignature& GetOnAddItemToInventorySignature() = 0;
+
+	virtual FOnRemoveItemFromInventorySignature& GetOnRemoveItemFromInventorySignature() = 0;
 };

@@ -4,6 +4,7 @@
 #include "PlayableCharacter.h"
 #include "InventoryComponent.h"
 #include "EquipmentComponent.h"
+#include "StatComponent.h"
 #include "BrowseProject/ItemSystem/ItemObjects.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -80,6 +81,10 @@ APlayableCharacter::APlayableCharacter()
 		
 	}
 
+	_StatComponent = CreateDefaultSubobject<UStatComponent>("Stat Component");
+	if (_StatComponent) {
+		
+	}
 }
 
 void APlayableCharacter::PreRegisterAllComponents()
@@ -105,17 +110,73 @@ UInventoryComponent* APlayableCharacter::GetInventoryComponent_Implementation()
 //-------------------------------------
 
 //--------------------------------------
+// Реализация методов интерфейса IStat
+//--------------------------------------
+
+int32 APlayableCharacter::RollAttackToEnemy_Implementation(AActor* Target, const UElementalDamageType* DamageType)
+{
+	return 10;
+}
+
+int32 APlayableCharacter::DealDamageToTarget_Implementation(AActor* Target, const UElementalDamageType* DamageType)
+{
+	return 10;
+}
+
+int32 APlayableCharacter::TakeDamageFromEnemy_Implementation(int32 Damage, const UElementalDamageType* DamageType, bool IsCrit)
+{
+	_Health = _Health - Damage;
+	if (_Health < 0) {
+		_Health = 0;
+		_OnDeath.Broadcast();
+	}
+	_OnHealthChanged.Broadcast(_Health, _StatComponent->GetStatValue(EStatKey::HEALTH, EStatTypeRetuned::GENERAL));
+	return _Health;
+}
+
+int32 APlayableCharacter::TakeHeal_Implementation(int32 HealAmount)
+{
+	_OnHealed.Broadcast(HealAmount);
+	_Health = _Health + HealAmount;
+	int32 MaxHealth = _StatComponent->GetStatValue(EStatKey::HEALTH, EStatTypeRetuned::GENERAL);
+	if (_Health > MaxHealth) {
+		_Health = MaxHealth;
+	}
+	_OnHealthChanged.Broadcast(_Health, MaxHealth);
+	return _Health;
+}
+//-------------------------------------
+
+//--------------------------------------
 // Реализация методов интерфейса Equipment
 //--------------------------------------
 
 // Функция для одевания предмета на персонажа
-bool APlayableCharacter::EquipItemOnCharacter_Implementation(UEquipmentItem* Item, ESlotStatus SlotStatus)
+bool APlayableCharacter::EquipItemOnCharacter_Implementation(UEquipmentItem* Item, ESlotType Slot)
 {
 	if (Item == nullptr) {
 		return false;
 	}
-	if (_EquipmentComponent->SetItemInSlot(Item->GetItemSlot(), Item, SlotStatus).IsSuccessfully == true) {
-		return true;
+	auto slot_t = _EquipmentComponent->GetEquipmentSlot(Slot);
+	if (slot_t) {
+		// Проверяем заблокирован ли стол
+		if ((*slot_t).Status <= ESlotStatus::BLOCKED) {
+			return false;
+		}
+		// Проверяем есть ли предмет в слоте, в который мы хотим поставить предмет
+		if ((*slot_t).Item) {
+			// Убираем предмет из слота
+			(*slot_t).Item->WithdrawFromCharacter(this);
+		}
+		// Устанавливаем предмет в слот экипировки персонажа
+		if (_EquipmentComponent->SetItemInSlot(Slot, Item)) {
+			// Вызываем событие, что предмет одет в слот
+			_OnEquipItem.Broadcast(*slot_t, Slot);
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	else {
 		return false;
@@ -124,22 +185,128 @@ bool APlayableCharacter::EquipItemOnCharacter_Implementation(UEquipmentItem* Ite
 
 bool APlayableCharacter::SetSkeletalMeshAsCharacterPart_Implementation(USkeletalMesh* SkeletalMesh, ESlotType Slot)
 {
-	auto t = *_CharacterParts.Find(Slot);
-	if (SkeletalMesh) {
-		t->SetSkeletalMesh(SkeletalMesh);
+	auto t = _CharacterParts.Find(Slot);
+	if (SkeletalMesh && t) {
+		(*t)->SetSkeletalMesh(SkeletalMesh);
 		return true;
 	}
 	return false;
+}
+
+bool APlayableCharacter::SetBasicSkeletalMeshAtSlot_Implementation(ESlotType Slot)
+{
+	auto mesh = _DefaultSkeletalParts.Find(Slot);
+	if (mesh) {
+		auto t = _CharacterParts.Find(Slot);
+		if (*t != nullptr) {
+			(*t)->SetSkeletalMesh((*mesh));
+			return true;
+		}
+	}
+	return false;
+}
+
+bool APlayableCharacter::WithdrawItemFromCharacterSlot_Implementation(ESlotType Slot)
+{
+	auto item_t = _EquipmentComponent->WithdrawItemFromSlot(Slot);
+	if (item_t == nullptr) {
+		return false;
+	}
+	else {
+		_OnWithdrawItem.Broadcast(*_EquipmentComponent->GetEquipmentSlot(Slot), Slot);
+		return false;
+	}
+}
+
+FEquipmentSlot* APlayableCharacter::GetSlotStructure(ESlotType Slot)
+{
+	return _EquipmentComponent->GetEquipmentSlot(Slot);
+}
+
+bool APlayableCharacter::ChangeSlotStatus_Implementation(ESlotType Slot, ESlotStatus Status)
+{
+	auto slot_t = _EquipmentComponent->GetEquipmentSlot(Slot);
+	if (slot_t == nullptr) {
+		return false;
+	}
+
+	(*slot_t).Status = Status;
+	return true;
+}
+
+bool APlayableCharacter::ReturnDefaultSlotStatus_Implementation(ESlotType Slot, ESlotStatus Status)
+{
+	auto slot_t = _EquipmentComponent->GetEquipmentSlot(Slot);
+	if (slot_t == nullptr) {
+		return false;
+	}
+
+	(*slot_t).Status = (*slot_t).DefaultStatus;
+	return true;
+}
+
+UDice* APlayableCharacter::GetDiceFromSlot_Implementation(EDice Slot)
+{
+	return _EquipmentComponent->GetDiceFromSlot(Slot);
+}
+
+bool APlayableCharacter::PutDiceInPocket_Implementation(EDice Slot, UDice* Dice)
+{
+	if (Dice == nullptr) {
+		return false;
+	}
+	if (_EquipmentComponent->SetDiceInSlot(Slot, Dice) == true) {
+		_OnPutMagicDiceInPocket.Broadcast(Dice, Slot);
+		return true;
+	}
+	return false;
+}
+
+bool APlayableCharacter::TakeOffDiceFromPocket_Implementation(EDice Slot)
+{
+	if (_EquipmentComponent->SetDiceInSlot(Slot, nullptr) == true) {
+		_OnTakeOffDiceFromPocket.Broadcast(nullptr, Slot);
+		return true;
+	}
+	else return false;
+}
+
+FOnEquipItemSignature& APlayableCharacter::GetOnEquipItemSignature()
+{
+	return _OnEquipItem;
+}
+
+FOnWithdrawItemSignature& APlayableCharacter::GetOnWithdrawItemSignature()
+{
+	return _OnWithdrawItem;
+}
+
+FOnPutMagicDiceInPocketSignature& APlayableCharacter::GetOnPutMagicDiceInPocketSignature()
+{
+	return _OnPutMagicDiceInPocket;
+}
+
+FOnTakeOffDiceFromPocketSignature& APlayableCharacter::GetOnTakeOffDiceFromPocketSignature()
+{
+	return _OnTakeOffDiceFromPocket;
 }
 
 //--------------------------------------
 // Реализация методов интерфейса Inventory
 //--------------------------------------
 
+void APlayableCharacter::RemoveEquipItemFromInventoryByFind_Implementation(UEquipmentItem* RemoveItem)
+{
+	if (_InventoryComponent->RemoveEquipmentItemFromListByFind(RemoveItem) == true) {
+		_OnRemoveItemFromInventory.Broadcast(RemoveItem);
+	}
+}
+
 EStatusOnAdd APlayableCharacter::AddEquipItemToInventory_Implementation(UEquipmentItem* EquipItem)
 {
 	if (EquipItem) {
-		_InventoryComponent->AddEquipItem(EquipItem);
+		_InventoryComponent->AddEquipItemAtList(EquipItem);
+		_OnAddItemToInventory.Broadcast(EquipItem);
 		return EStatusOnAdd::ADDED;
 	}
 	else {
@@ -149,7 +316,18 @@ EStatusOnAdd APlayableCharacter::AddEquipItemToInventory_Implementation(UEquipme
 
 EStatusOnAdd APlayableCharacter::AddBasicItemToInventory_Implementation(UBasicItem* BasicItem)
 {
+	_OnAddItemToInventory.Broadcast(BasicItem);
 	return EStatusOnAdd::NULL_ERROR;
+}
+
+FOnAddItemToInventorySignature& APlayableCharacter::GetOnAddItemToInventorySignature()
+{
+	return _OnAddItemToInventory;
+}
+
+FOnRemoveItemFromInventorySignature& APlayableCharacter::GetOnRemoveItemFromInventorySignature()
+{
+	return _OnRemoveItemFromInventory;
 }
 
 //-------------------------------------
@@ -159,6 +337,14 @@ void APlayableCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	_Health = _StatComponent->GetStatValue(EStatKey::HEALTH, EStatTypeRetuned::GENERAL);
+	_Mana = _StatComponent->GetStatValue(EStatKey::MANA, EStatTypeRetuned::GENERAL);
+	_Stamina = _StatComponent->GetStatValue(EStatKey::HEALTH, EStatTypeRetuned::GENERAL);
+	_Durability = _StatComponent->GetStatValue(EStatKey::HEALTH, EStatTypeRetuned::GENERAL);
+
+	// Нужно для обновления всех виджетов
+	_OnHealthChanged.Broadcast(_Health, _Health);
+	_OnManaChanged.Broadcast(_Mana, _Mana);
 }
 
 // Called every frame

@@ -28,20 +28,6 @@ public:
 	int32 Count;
 };
 
-USTRUCT(BlueprintType)
-struct FEquipItemSlotInv {
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UEquipmentItem* Item;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool isEquipped;
-
-};
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) ) 
 class BROWSEPROJECT_API UInventoryComponent : public UActorComponent
 {
@@ -79,8 +65,11 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Inventory", meta = (DisplayName = "List of Common Items"))
 	TMap<int32, FBasicItemSlotInv> _BasicItemList;
 
+	/// <summary>
+	/// Список предметов экипировки, которые находятся в инвентаре у персонажа и при этом не одеты на персонажа 
+	/// </summary>
 	UPROPERTY(VisibleAnywhere, Category = "Inventory", meta = (DisplayName = "List of Equip Items"))
-	TArray<FEquipItemSlotInv> _EquipmentItemList;
+	TArray<UEquipmentItem*> _EquipmentItemList;
 
 protected:
 	// Called when the game starts
@@ -90,18 +79,51 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	/// <summary>
+	/// Добавляет предмет в инвентарь экипировки
+	/// </summary>
+	/// <param name="Item">Предмет экипировки</param>
 	UFUNCTION(BlueprintCallable)
-	void AddEquipItem(UEquipmentItem* Item);
+	void AddEquipItemAtList(UEquipmentItem* Item);
 
 	UFUNCTION(BlueprintCallable)
-	int32 GetCountOfEquipItems();
+	int32 GetCountOfEquipItems() const;
 
+	/// <summary>
+	/// Выводит список всех предметов экипировки
+	/// </summary>
+	/// <returns></returns>
 	UFUNCTION(BlueprintCallable)
-	TArray<FEquipItemSlotInv> GetEquipmentItemList() const;
+	TArray<UEquipmentItem*> GetEquipmentItemList() const;
 
+	/// <summary>
+	/// Функция возвращает предмет экипировки из списка по номеру.
+	/// </summary>
+	/// <param name="Num">Номер в списке экипировки</param>
+	/// <returns>Указатель на предмет экипировки</returns>
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UEquipmentItem* GetEquipmentItemFromListByIndex(int32 Index) const;
+
+	/// <summary>
+	/// Удаляет предмет экипировки из списка по номеру 
+	/// </summary>
+	/// <returns>Указатель на предмет экипировки</returns>
+	UEquipmentItem* RemoveEquipmentItemFromListByIndex(int32 Index);
+
+	/// <summary>
+	/// Удаляет предмет экипировки из списка через поиск предмета
+	/// </summary>
+	bool RemoveEquipmentItemFromListByFind(UEquipmentItem* RemoveItem);
+
+	/// <summary>
+	/// Возвращает делегат отображение предметов
+	/// </summary>
+	/// <returns></returns>
 	FOnDisplayItemsSignature& GetDisplaySignature();
 
+	/// <summary>
+	/// Возвращает делегат скрытия предмета
+	/// </summary>
+	/// <returns></returns>
 	FOnHideItemsSignature& GetHideSignature();
-
-	
 };

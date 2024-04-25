@@ -38,14 +38,23 @@ enum class ESlotType : uint8
 	FINGER_2 = 10 UMETA(DisplayName = "Finger 2"),
 };
 
+UENUM(BlueprintType)
+enum class EDice : uint8
+{
+	ATTACK_DICE = 0 UMETA(DisplayName = "Attack Dice"),
+	DAMAGE_DICE = 1 UMETA(DisplayName = "Damage Dice"),
+	TRIAL_DICE = 2 UMETA(DisplayName = "Trial Dice"),
+};
+
 /**
  * Перечисление статусов слотов экипировки
  */
 UENUM(BlueprintType)
 enum class ESlotStatus : uint8
 {
-	BLOCKED = 0 UMETA(DisplayName = "Blocked"),
-	DEFAULT = 1 UMETA(DisplayName = "Default"),
-	SESQUIALTERAL = 2 UMETA(DisplayName = "Sesquialteral"),
-	TWOHANDED = 3 UMETA(DisplayName = "Twohanded"),
+	NOT_EXISTING = 0 UMETA(DisplayName = "Not Existing"),
+	BLOCKED = 1 UMETA(DisplayName = "Blocked"),
+	DEFAULT = 2 UMETA(DisplayName = "Default"),
+	SESQUIALTERAL = 3 UMETA(DisplayName = "Sesquialteral"),
+	TWOHANDED = 4 UMETA(DisplayName = "Twohanded"),
 };

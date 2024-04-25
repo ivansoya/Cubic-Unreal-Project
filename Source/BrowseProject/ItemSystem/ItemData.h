@@ -55,17 +55,42 @@ struct BROWSEPROJECT_API FEquipmentDataRow : public FItemDataRow
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "List of Requirements"))
 	TMap<EStatKey, int> Requirements;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
-	ESlotType Slot;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", meta = (DisplayName = "List of Additional Affixes"))
 	TArray<UAffix*> Affixes;
 };
 
 USTRUCT(BlueprintType)
+struct BROWSEPROJECT_API FDiceDataRow : public FEquipmentDataRow
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
+	EDice DiceSlot;
+
+	// Index - number of Facet
+	// Value - Value on Facet
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dice Stats", meta = (DisplayName = "Array of Value Facets on Dice"))
+	TArray<int32> Facets;
+};
+
+UENUM(Meta = (Bitglags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class EArmorSlots
+{
+	EAC_Head = ESlotType::HEAD UMETA(DisplayName = "Head"),
+	EAC_Body = ESlotType::BODY UMETA(DisplayName = "Body"),
+	EAC_Hands = ESlotType::HANDS UMETA(DisplayName = "Hands"),
+	EAC_Legs = ESlotType::LEGS UMETA(DisplayName = "Legs"),
+	EAC_Feet = ESlotType::FEET UMETA(DisplayName = "Feet"),
+};
+ENUM_CLASS_FLAGS(EArmorSlots);
+
+USTRUCT(BlueprintType)
 struct BROWSEPROJECT_API FArmorDataRow : public FEquipmentDataRow
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot", Bitmask, BitmaskEnum = "EArmorSlots"))
+	ESlotType ArmorSlot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", meta = (DisplayName = "Mesh On Equip"))
 	USkeletalMesh* ComponentBodyMesh;
@@ -82,24 +107,37 @@ struct BROWSEPROJECT_API FWeaponDataRow : public FEquipmentDataRow
 {
 	GENERATED_BODY()
 
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Mesh"))
 	UStaticMesh* WeaponMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Additional Slot"))
-	ESlotType AdditionalSlot = ESlotType::LEFT_HAND;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Damage"))
 	FWeaponDamage WeaponDamage;
 
+	// Определяет тип оружия и как оно будет впоследствии одеваться
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Class"))
 	EWeaponType WeaponClass;
 };
+
+UENUM(Meta = (Bitglags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class EJewelrySlots
+{
+	EJC_Necklace = ESlotType::NECKLACE UMETA(DisplayName = "Necklace"),
+	EJC_Wrist = ESlotType::WRIST UMETA(DisplayName = "Wrist"),
+};
+ENUM_CLASS_FLAGS(EJewelrySlots);
 
 USTRUCT(BlueprintType)
 struct BROWSEPROJECT_API FJewelryDataRow : public FEquipmentDataRow
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Jewelry Specials", Meta = (DisplayName = "Is Ring?"))
-	bool IsRing = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot", Bitmask, BitmaskEnum = "EJewelrySlots"))
+	ESlotType JewelrySlot;
+};
+
+USTRUCT(BlueprintType)
+struct BROWSEPROJECT_API FRingDataRow : public FEquipmentDataRow
+{
+	GENERATED_BODY()
 };

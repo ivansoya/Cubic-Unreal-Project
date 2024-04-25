@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "ItemData.h"
+#include "BrowseProject/Character/EquipmentComponent.h"
+#include "BrowseProject/Character/InventoryComponent.h"
+#include "Roll.h"
 #include "ItemObjects.generated.h"
 
 
@@ -35,10 +38,19 @@ public:
 
 public:
 
+	/// <summary>
+	/// Функция добавления предмета в инвентарь
+	/// </summary>
+	/// <param name="Character">Класс актера, к которому привязаны интерфейсы инвентаря</param>
+	/// <returns>Возвращает был ли добавлен предмет</returns>
 	UFUNCTION(BlueprintCallable)
-	virtual void AddToInventory(AActor* PlayableActor);
+	virtual bool AddToInventory(AActor* Character);
 
-	// Функция для считывания данных из структуры
+	/// <summary>
+	/// Функция, которая считывает все данные из предоставленной структуры
+	/// </summary>
+	/// <param name="Data">Структура данных</param>
+	/// <returns>Результат операции</returns>
 	virtual bool SetDataToObject(FItemDataRow* Data);
 
 protected:
@@ -66,22 +78,61 @@ class BROWSEPROJECT_API UEquipmentItem : public UBasicItem
 
 	GENERATED_BODY()
 
+public: 
+
+	/// <summary>
+	/// Функция, которая проверяет подходит ли предмет
+	/// </summary>
+	/// <param name="Character">Класс актера, к которому привязаны интерфейсы характеристик</param>
+	/// <returns></returns>
+	UFUNCTION(BlueprintCallable)
+	bool CheckRequirements(AActor* Character);
+
+	/// <summary>
+	/// Экипировка предмета в слот в проверкой статуса слота
+	/// </summary>
+	/// <param name="Character">Класс актера, к которому привязаны интерфейсы экипировки</param>
+	/// <returns>Возвращает был одет предмет в слот</returns>
+	UFUNCTION(BlueprintCallable)
+	virtual bool EquipAtSlotCheckStatus(AActor* Character);
+
+	/// <summary>
+	/// Снятие предмета с персонажа
+	/// </summary>
+	/// <param name="Character">Класс актера, к которому привязаны интерфейсы экипировки</param>
+	/// <returns>Возвращает удалось ли снять предмет</returns>
+	UFUNCTION(BlueprintCallable)
+	virtual bool WithdrawFromCharacter(AActor* Character);
+
+	/// <summary>
+	/// Применяет все характеристики предмета к персонажу
+	/// </summary>
+	/// <param name="Character">Класс актера, к которому привязаны интерфейсы характеристик</param>
+	/// <returns></returns>
+	UFUNCTION(BlueprintCallable)
+	virtual bool ApplyAllStatsToCharacter(AActor* Character);
+
+	/// <summary>
+	/// Отменяет все характеристики, которые были применены к персонажу с предмета
+	/// </summary>
+	/// <param name="Character">Класс актера, к которому привязаны интерфейсы характеристик</param>
+	/// <returns>Возвращает результат операции</returns>
+	UFUNCTION(BlueprintCallable)
+	virtual bool AnnulItemStatsFromCharacter(AActor* Character);
+
+	/// <summary>
+	/// Константная функция, возвращающая тип слота
+	/// </summary>
+	/// <returns>Тип слота в формате ESlotType</returns>
+	ESlotType GetItemSlot() const;
+
 public:
 
-	virtual void AddToInventory(AActor* PlayableActor) override;
+	// Переопределение добавления предмета в инвентарь
+	virtual bool AddToInventory(AActor* Character) override;
 
-	// Функция для определения, можно ли надеть предмет на персонажа
-	UFUNCTION(BlueprintCallable)
-	bool CheckRequirements();
-
-	// Функция для одевания предмета на персонажа
-	UFUNCTION(BlueprintCallable)
-	virtual void Equip(AActor* Chacter);
-
-	// Функция для считывания данных из структуры
+	// Переопределение функции считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
-
-	ESlotType GetItemSlot() const;
 
 protected:
 
@@ -91,9 +142,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "List of Requirements"))
 	TMap<EStatKey, int> _ItemRequirements;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
-	ESlotType _Slot;
 
 private:
 
@@ -115,11 +163,20 @@ public:
 
 public:
 
-	// Функция для одевания предмета на персонажа
-	void Equip(AActor* Character) override;
+	// Переопределение функции для одевания предмета на персонажа
+	virtual bool EquipAtSlotCheckStatus(AActor* Character) override;
+
+	// Переопределение функции для снятия предмета с персонажа
+	virtual bool WithdrawFromCharacter(AActor* Character) override;
+
+	// Переопределение функции применение характеристик к персонажу
+	//virtual bool ApplyAllStatsToCharacter(AActor* Character) override;
+
+	// Переопределение функции отмены примененных характеристик у персонажа
+	//virtual bool AnnulItemStatsFromCharacter(AActor* Character) override;
 
 	// Функция для считывания данных из структуры
-	bool SetDataToObject(FItemDataRow* Data) override;
+	virtual bool SetDataToObject(FItemDataRow* Data) override;
 
 protected:
 
@@ -129,8 +186,44 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Stat Value"))
 	int _ArmorValueStat;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
+	ESlotType _Slot;
+
 private:
 
+};
+
+/// <summary>
+/// Класс дайсов
+/// </summary>
+UCLASS(Blueprintable)
+class BROWSEPROJECT_API UDice : public UEquipmentItem, public IRoll
+{
+
+	GENERATED_BODY()
+
+public:
+
+	// Переопределение функции для одевания предмета на персонажа
+	virtual bool EquipAtSlotCheckStatus(AActor* Character) override;
+
+	// Переопределение функции для снятия предмета с персонажа
+	virtual bool WithdrawFromCharacter(AActor* Character) override;
+
+	// Функция для считывания данных из структуры
+	virtual bool SetDataToObject(FItemDataRow* Data) override;
+
+	// Переопределение функции ролла значений кубика
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	int32 Roll();
+
+private:
+
+	UPROPERTY(VisibleAnywhere, Category = "Dice Stats", meta = (DisplayName = "Map of Facets on Dice"))
+	TArray<int32> _Facets;
+
+	UPROPERTY(VisibleAnywhere, Category = "Dice Stats", meta = (DisplayName = "Slot"))
+	EDice _Slot;
 };
 
 /// <summary>
@@ -149,9 +242,6 @@ public:
 	UStaticMesh* WeaponMesh;
 
 public:
-
-	// Функция для одевания предмета на персонажа
-	void Equip(AActor* Character) override;
 
 	// Функция для считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
@@ -181,11 +271,8 @@ class BROWSEPROJECT_API UTwoHanded : public UWeapon
 
 public:
 
-	// Функция для одевания предмета на персонажа
-	void Equip(AActor* Character) override;
 
 protected:
-
 
 
 private:
@@ -205,8 +292,6 @@ class BROWSEPROJECT_API USesquialteral : public UWeapon
 
 public:
 
-	// Функция для одевания предмета на персонажа
-	void Equip(AActor* Character) override;
 
 protected:
 
@@ -228,8 +313,7 @@ class BROWSEPROJECT_API UOneHanded : public UWeapon
 
 public:
 
-	// Функция для одевания предмета на персонажа
-	void Equip(AActor* Character) override;
+
 
 protected:
 
@@ -250,15 +334,11 @@ class BROWSEPROJECT_API UJewelry : public UEquipmentItem
 
 public:
 
-	// Функция для одевания предмета на персонажа
-	void Equip(AActor* Character) override;
-
-	// Функция для считывания данных из структуры
-	bool SetDataToObject(FItemDataRow* Data) override;
 
 protected:
 
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
+	ESlotType _Slot;
 
 private:
 
@@ -269,21 +349,15 @@ private:
 /// Кольца имеют дополнительный слот для надевания.
 /// </summary>
 UCLASS(Blueprintable)
-class BROWSEPROJECT_API URing : public UJewelry
+class BROWSEPROJECT_API URing : public UEquipmentItem
 {
 
 	GENERATED_BODY()
 
 public:
 
-	// Функция для одевания предмета на персонажа
-	void Equip(AActor* Character) override;
-
-	// Функция для считывания данных из структуры
-	bool SetDataToObject(FItemDataRow* Data) override;
 
 protected:
-
 
 
 private:

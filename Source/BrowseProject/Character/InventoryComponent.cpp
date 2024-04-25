@@ -54,19 +54,58 @@ void UInventoryComponent::HideItems() const
 	}
 }
 
-void UInventoryComponent::AddEquipItem(UEquipmentItem* Item) 
+void UInventoryComponent::AddEquipItemAtList(UEquipmentItem* Item)
 {
 	if (Item) {
-		_EquipmentItemList.Add(FEquipItemSlotInv(Item, false));
+		_EquipmentItemList.Add(Item);
 	}
 }
 
-TArray<FEquipItemSlotInv> UInventoryComponent::GetEquipmentItemList() const
+UEquipmentItem* UInventoryComponent::GetEquipmentItemFromListByIndex(int32 Index) const
+{
+	if (_EquipmentItemList.Num() <= Index || Index < 0) {
+		return nullptr;
+	}
+	else {
+		return _EquipmentItemList[Index];
+	}
+}
+
+UEquipmentItem* UInventoryComponent::RemoveEquipmentItemFromListByIndex(int32 Index)
+{
+	// Проверка индекса
+	if (_EquipmentItemList.Num() <= Index || Index < 0) {
+		return nullptr;
+	}
+	// Проверка есть ли предмет по индексу
+	UEquipmentItem* RemovableItem = _EquipmentItemList[Index];
+
+	if (RemovableItem == nullptr) {
+		return nullptr;
+	}
+
+	_EquipmentItemList.RemoveAt(Index);
+
+	return RemovableItem;
+		
+}
+
+bool UInventoryComponent::RemoveEquipmentItemFromListByFind(UEquipmentItem* RemoveItem)
+{
+	int32 Index;
+	if (_EquipmentItemList.Find(RemoveItem, Index) == true) {
+		_EquipmentItemList.RemoveAt(Index);
+		return true;
+	}
+	return false;
+}
+
+TArray<UEquipmentItem*> UInventoryComponent::GetEquipmentItemList() const
 {
 	return _EquipmentItemList;
 }
 
-int32 UInventoryComponent::GetCountOfEquipItems()
+int32 UInventoryComponent::GetCountOfEquipItems() const
 {
 	return _EquipmentItemList.Num();
 }

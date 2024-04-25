@@ -75,16 +75,23 @@ void ULootComponent::SpawnCustomLoot(FTransform SpawnTransform)
 		// Проверяем является ли предмет бижутерией
 		Data = CastFindStruct<FJewelryDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
 		if (Data != nullptr) {
-			if (static_cast<FJewelryDataRow*>(Data)->IsRing == true) {
-				ItemObject = NewObject<URing>();
-			}
-			else {
-				ItemObject = NewObject<UJewelry>();
-			}
+			ItemObject = NewObject<UJewelry>();
 			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
 			continue;
 		}
-
+		// Проверяем является ли предмет кольцом
+		Data = CastFindStruct<FRingDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
+		if (Data != nullptr) {
+			ItemObject = NewObject<URing>();
+			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
+			continue;
+		}
+		// Проверяем является при предмет кубиком
+		Data = CastFindStruct<FDiceDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
+		if (Data != nullptr) {
+			ItemObject = NewObject<UDice>();
+			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
+		}
 		// Произошла ошибка в определении класса предмета
 		//else {
 		//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Error"));

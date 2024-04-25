@@ -4,11 +4,13 @@
 #include "BrowseProject/Character/InventoryInterface.h"
 #include "BrowseProject/Character/EquipmentInteface.h"
 
-void UBasicItem::AddToInventory(AActor* PlayableActor)
+bool UBasicItem::AddToInventory(AActor* PlayableActor)
 {
 	if (Cast<IInventory>(PlayableActor)) {
 		IInventory::Execute_AddBasicItemToInventory(PlayableActor, this);
+		return true;
 	}
+	return false;
 }
 
 bool UBasicItem::SetDataToObject(FItemDataRow* Data)
@@ -27,21 +29,38 @@ bool UBasicItem::SetDataToObject(FItemDataRow* Data)
 	return true;
 }
 
-void UEquipmentItem::AddToInventory(AActor* PlayableActor)
+bool UEquipmentItem::AddToInventory(AActor* PlayableActor)
 {
 	if (Cast<IInventory>(PlayableActor)) {
 		IInventory::Execute_AddEquipItemToInventory(PlayableActor, this);
+		return true;
 	}
+	return false;
 }
 
-bool UEquipmentItem::CheckRequirements()
+bool UEquipmentItem::CheckRequirements(AActor* Character)
 {
 	return true;
 }
 
-void UEquipmentItem::Equip(AActor* Character)
+bool UEquipmentItem::EquipAtSlotCheckStatus(AActor* Character)
 {
-	return;
+	return true;
+}
+
+bool UEquipmentItem::WithdrawFromCharacter(AActor* Character)
+{
+	return true;
+}
+
+bool UEquipmentItem::ApplyAllStatsToCharacter(AActor* Character)
+{
+	return true;
+}
+
+bool UEquipmentItem::AnnulItemStatsFromCharacter(AActor* Character)
+{
+	return true;
 }
 
 bool UEquipmentItem::SetDataToObject(FItemDataRow* Data)
@@ -55,22 +74,56 @@ bool UEquipmentItem::SetDataToObject(FItemDataRow* Data)
 		return false;
 	}
 	_ItemAffixes = t->Affixes;
-	_Slot = t->Slot;
 	_ItemRequirements = t->Requirements;
 	return true;
 }
 
-ESlotType UEquipmentItem::GetItemSlot() const
+/// ************************
+/// Броня
+/// ************************
+
+bool UArmor::EquipAtSlotCheckStatus(AActor* Character)
 {
-	return _Slot;
+	auto eq_t = Cast<IEquipment>(Character);
+	auto inv_t = Cast<IInventory>(Character);
+	if (eq_t && inv_t) {
+		FEquipmentSlot* slot_t = eq_t->GetSlotStructure(_Slot);
+		if (slot_t == nullptr) {
+			return false;
+		}
+		if ((*slot_t).Status <= ESlotStatus::BLOCKED) {
+			return false;
+		}
+		// Проверяем есть ли предмет в слоте перед одеванием
+		if ((*slot_t).Item) {
+			// Снимаем одетый предмет
+			(*slot_t).Item->WithdrawFromCharacter(Character);
+		}
+		IEquipment::Execute_EquipItemOnCharacter(Character, this, _Slot);
+		IInventory::Execute_RemoveEquipItemFromInventoryByFind(Character, this);
+		IEquipment::Execute_SetSkeletalMeshAsCharacterPart(Character, ComponentBodyMesh, _Slot);
+		ApplyAllStatsToCharacter(Character);
+		return true;
+	}
+	return false;
 }
 
-void UArmor::Equip(AActor* Character)
+bool UArmor::WithdrawFromCharacter(AActor* Character)
 {
-	if (Cast<IEquipment>(Character)) {
-		IEquipment::Execute_EquipItemOnCharacter(Character, this, ESlotStatus::DEFAULT);
-		IEquipment::Execute_SetSkeletalMeshAsCharacterPart(Character, ComponentBodyMesh, _Slot);
+	// Отмена всех эффектов предмета на персонаже
+	AnnulItemStatsFromCharacter(Character);
+	// Добавление предмета обратно в инвентарь
+	auto inv_t = Cast<IInventory>(Character);
+	if (inv_t) {
+		IInventory::Execute_AddEquipItemToInventory(Character, this);
 	}
+	// Установка базовой модели части персонажа
+	auto eq_t = Cast<IEquipment>(Character);
+	if (eq_t) {
+		IEquipment::Execute_WithdrawItemFromCharacterSlot(Character, _Slot);
+		IEquipment::Execute_SetBasicSkeletalMeshAtSlot(Character, _Slot);
+	}
+	return true;
 }
 
 bool UArmor::SetDataToObject(FItemDataRow* Data)
@@ -84,15 +137,82 @@ bool UArmor::SetDataToObject(FItemDataRow* Data)
 		return false;
 	}
 	ComponentBodyMesh = t->ComponentBodyMesh;
+	_Slot = t->ArmorSlot;
 	_ArmorKeyStat = t->ArmorKeyStat;
 	_ArmorValueStat = t->ArmorValueStat;
 	return true;
 }
 
-void UWeapon::Equip(AActor* Character)
+/// ************************
+/// Кубики
+/// ************************
+
+// Переопределение функции для одевания предмета на персонажа
+bool UDice::EquipAtSlotCheckStatus(AActor* Character)
 {
-	UEquipmentItem::Equip(Character);
+	auto eq_t = Cast<IEquipment>(Character);
+	auto inv_t = Cast<IInventory>(Character);
+	if (eq_t && inv_t) {
+		auto slot_t = IEquipment::Execute_GetDiceFromSlot(Character, _Slot);
+		// Проверяем есть ли кубик в слоте перед одеванием
+		if (slot_t) {
+			// Снимаем одетый предмет
+			slot_t->WithdrawFromCharacter(Character);
+		}
+		IEquipment::Execute_PutDiceInPocket(Character, _Slot, this);
+		IInventory::Execute_RemoveEquipItemFromInventoryByFind(Character, this);
+		ApplyAllStatsToCharacter(Character);
+		return true;
+	}
+	return false;
 }
+
+// Переопределение функции для снятия предмета с персонажа
+bool UDice::WithdrawFromCharacter(AActor* Character)
+{
+	// Отмена всех эффектов предмета на персонаже
+	AnnulItemStatsFromCharacter(Character);
+	// Добавление предмета обратно в инвентарь
+	auto inv_t = Cast<IInventory>(Character);
+	if (inv_t) {
+		IInventory::Execute_AddEquipItemToInventory(Character, this);
+	}
+	auto eq_t = Cast<IEquipment>(Character);
+	if (eq_t) {
+		IEquipment::Execute_TakeOffDiceFromPocket(Character, _Slot);
+	}
+	return true;
+}
+
+// Функция для считывания данных из структуры
+bool UDice::SetDataToObject(FItemDataRow* Data)
+{
+	FDiceDataRow* data_t;
+	try {
+		data_t = static_cast<FDiceDataRow*>(Data);
+		_Facets = data_t->Facets;
+		_Slot = data_t->DiceSlot;
+		return UEquipmentItem::SetDataToObject(Data);
+	}
+	catch (...) {
+		return false;
+	}
+}
+
+// Переопределение функции ролла значений кубика
+int32 UDice::Roll_Implementation()
+{
+	int32 num_t = _Facets.Num();
+	if (num_t <= 0)
+	{
+		return 1;
+	}
+	return _Facets[FMath::RandRange(0, num_t - 1)];
+}
+
+/// ************************
+/// Оружие
+/// ************************
 
 bool UWeapon::SetDataToObject(FItemDataRow* Data)
 {
@@ -105,43 +225,7 @@ bool UWeapon::SetDataToObject(FItemDataRow* Data)
 		return false;
 	}
 	WeaponMesh = t->WeaponMesh;
-	_AdditionalSlot = t->AdditionalSlot;
 	_WeaponDamage = t->WeaponDamage;
 	return true;
-}
-
-void UOneHanded::Equip(AActor* Character)
-{
-	UEquipmentItem::Equip(Character);
-}
-
-void UTwoHanded::Equip(AActor* Character)
-{
-	UEquipmentItem::Equip(Character);
-}
-
-void USesquialteral::Equip(AActor* Character)
-{
-	UEquipmentItem::Equip(Character);
-}
-
-void UJewelry::Equip(AActor* Character)
-{
-	UEquipmentItem::Equip(Character);
-}
-
-bool UJewelry::SetDataToObject(FItemDataRow* Data)
-{
-	return UEquipmentItem::SetDataToObject(Data);
-}
-
-void URing::Equip(AActor* Character)
-{
-	UEquipmentItem::Equip(Character);
-}
-
-bool URing::SetDataToObject(FItemDataRow* Data)
-{
-	return UJewelry::SetDataToObject(Data);
 }
 

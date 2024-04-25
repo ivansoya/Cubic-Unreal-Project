@@ -17,10 +17,10 @@ class BROWSEPROJECT_API UElementalDamageType : public UDataAsset
 
 public:
 
-	UPROPERTY(BlueprintReadWrite, Meta = (DisplayName = "Название Элемента"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Name"))
 	FString Name;
 
-	UPROPERTY(BlueprintReadWrite, Meta = (DisplayName = "Цвет Текста"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Text Color"))
 	FColor TextColor;
 
 	// Место для эффекта, который накладывается при нанесении урона
