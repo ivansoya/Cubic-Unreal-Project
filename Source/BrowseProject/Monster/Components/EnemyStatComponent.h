@@ -27,17 +27,6 @@ protected:
 	
 private:
 
-	UPROPERTY(Category = "Stats", VisibleAnywhere, meta = (DisplayName = "Monster Stats"))
-	TMap<EStatKey, int32> _Stats;
-
-	UPROPERTY(Category = "Stats", VisibleAnywhere, meta = (DisplayName = "Monster Damage"))
-	FMonsterDamage _Damage;
-
-	UPROPERTY(Category = "Stats", VisibleAnywhere, meta = (DisplayName = "Monster Durability Regeneration"))
-	int32 _RegenDurability;
-
-	UPROPERTY(Category = "Stats", VisibleAnywhere, meta = (DisplayName = "Monster Start Durability Reneration Time"))
-	int32 _StartRegenDurability;
 
 
 };

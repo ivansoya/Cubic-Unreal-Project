@@ -18,14 +18,5 @@ void UEnemyStatComponent::BeginPlay()
 
 void UEnemyStatComponent::SetEnemyData(FEnemyData* Data)
 {
-	// копирование структуры урона
-	_Damage = Data->Damage;
-	// ƒобавление характеристик в список
-	for (auto& t_StatPair : Data->StatList) {
-		_Stats.Add(TPair<EStatKey, int32>(t_StatPair.Stat, t_StatPair.Value));
-	}
-	// «начение прочих характеристик
-	_RegenDurability = Data->RegenDurability;
-	_StartRegenDurability = Data->StartRegenDurability;
 
 }

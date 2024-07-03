@@ -25,6 +25,9 @@ ASkeletalMeshEnemy::ASkeletalMeshEnemy()
 	_CapsuleComponent->bDynamicObstacle = true;
 	_CapsuleComponent->SetupAttachment(RootComponent);
 
+	_CapsuleComponent->OnBeginCursorOver.AddDynamic(this, &ASkeletalMeshEnemy::BeginCursorOver);
+	_CapsuleComponent->OnEndCursorOver.AddDynamic(this, &ASkeletalMeshEnemy::EndCursorOver);
+
 	_SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>("Skeletal Mesh Component");
 	_SkeletalMeshComponent->SetRelativeLocation(FVector(0, 0, -_CapsuleComponent->GetScaledCapsuleHalfHeight()));
 	_SkeletalMeshComponent->SetRelativeRotation(FRotator(0, -90, 0));
@@ -57,18 +60,40 @@ void ASkeletalMeshEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	// Проверяем есть DataTable
-	if (_EnemyData.DataTable) {
-		// Проверяем строчку таблицы на FEnemyData
-		if (_EnemyData.DataTable->GetRowStruct() == FEnemyData::StaticStruct()) {
-			// Вытасикваем данные из таблицы и присаваиваем их мобу
-			auto t_Data = _EnemyData.GetRow<FEnemyData>(_EnemyData.RowName.ToString());
-			if (t_Data) {
-				_Health = t_Data->Health;
-				_MaxHealth = t_Data->Health;
-				_Durability = t_Data->Durability;
-				_MaxDurability = t_Data->Durability;
-				_StatComponent->SetEnemyData(t_Data);
-			}
+	//if (_EnemyData.DataTable) {
+	//	// Проверяем строчку таблицы на FEnemyData
+	//	if (_EnemyData.DataTable->GetRowStruct() == FEnemyData::StaticStruct()) 
+	//	{
+
+	//	}
+	//}
+}
+
+void ASkeletalMeshEnemy::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	if (_EnemyData.DataTable) 
+	{
+		if (_EnemyData.DataTable->GetRowStruct() == FEnemyData::StaticStruct())
+		{
+			auto Data = _EnemyData.DataTable->FindRow<FEnemyData>(_EnemyData.RowName, "");
+			_MaxHealth = Data->Health;
+			_CurrentHealth = _MaxHealth;
+			_RegenHealth = Data->HealthRegeneration;
+			_Defense = Data->Defense;
+			_MaxDurability = Data->Durability;
+			_CurrentDurability = _MaxDurability;
+			_RegenDurability = Data->RegenDurability;
+			_StartRegenDurability = Data->StartRegenDurability;
+
+			_MonsterLevel = Data->Level;
+			_GainedExp = Data->ExpGained;
+			_Name = Data->Name;
+			_Class = Data->Class;
+
+			_MonsterDamage = Data->Damage;
+			_StatList = Data->StatList;
+			_ResistanceList = Data->ResistanceList;
 		}
 	}
 }
@@ -87,3 +112,12 @@ void ASkeletalMeshEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 }
 
+void ASkeletalMeshEnemy::BeginCursorOver(UPrimitiveComponent* TouchedActor)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Overlapped the mob!"));
+}
+
+void ASkeletalMeshEnemy::EndCursorOver(UPrimitiveComponent* TouchedActor)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("End overlap the mob!"));
+}
