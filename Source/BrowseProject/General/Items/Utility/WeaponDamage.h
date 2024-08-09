@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "BrowseProject/General/Element/ElementalDamageType.h"
 #include "WeaponDamage.generated.h"
 
 /**

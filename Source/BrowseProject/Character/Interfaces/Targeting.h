@@ -15,18 +15,6 @@ class UTargeting : public UInterface
 	GENERATED_BODY()
 };
 
-USTRUCT(BlueprintType)
-struct BROWSEPROJECT_API FTargetStats 
-{
-	GENERATED_BODY();
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FString Name;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 Health;
-};
-
 /**
  * 
  */

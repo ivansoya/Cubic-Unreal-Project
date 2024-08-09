@@ -71,4 +71,16 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	void ChangeElementalValue(int32 Value, UElementalDamageType* Element, EStatElementalType Type);
 
+	UFUNCTION(BlueprintNativeEvent)
+	int32 GetCharacterLevel();
+
+	UFUNCTION(BlueprintNativeEvent)
+	FString GetCharacterName();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void GetCharacterHealth(int32& CurrentHealth, int32& MaxHealth);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void GetCharacterDurability(int32& CurrentDurability, int32& MaxDurability);
+
 };

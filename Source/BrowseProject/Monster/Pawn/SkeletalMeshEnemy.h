@@ -25,7 +25,21 @@ public:
 
 
 public:
+	// ---------------------------------------------
+	//	Переопредление методов IStatInterface
+	// ---------------------------------------------
 
+	UFUNCTION(BlueprintNativeEvent)
+	int32 GetCharacterLevel();
+
+	UFUNCTION(BlueprintNativeEvent)
+	FString GetCharacterName();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void GetCharacterHealth(int32& CurrentHealth, int32& MaxHealth);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void GetCharacterDurability(int32& CurrentDurability, int32& MaxDurability);
 
 private: 
 
@@ -126,12 +140,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void PostInitializeComponents() override;
-
-	UFUNCTION()
-	virtual void BeginCursorOver(UPrimitiveComponent* TouchedActor);
-
-	UFUNCTION()
-	virtual void EndCursorOver(UPrimitiveComponent* TouchedActor);
 
 public:	
 	// Called every frame

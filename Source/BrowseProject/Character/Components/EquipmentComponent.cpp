@@ -13,25 +13,22 @@ UEquipmentComponent::UEquipmentComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// Инициализация всех слотов экипировки
-	_EquipmentSlots.Add(ESlotType::HEAD, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::BODY, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::HANDS, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::LEGS, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::FEET, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::FINGER_1, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::FINGER_2, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::NECKLACE, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::WRIST, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::LEFT_HAND, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	_EquipmentSlots.Add(ESlotType::RIGHT_HAND, FEquipmentSlot(nullptr, ESlotStatus::DEFAULT, ESlotStatus::DEFAULT));
-	// ...
-
-	_DiceList.Add(EDice::ATTACK_DICE, nullptr);
-	_DiceList.Add(EDice::DAMAGE_DICE, nullptr);
-	_DiceList.Add(EDice::TRIAL_DICE, nullptr);
+	_EquipmentSlots.Add(ESlotType::WEAPON, nullptr);
+	_EquipmentSlots.Add(ESlotType::HEAD, nullptr);
+	_EquipmentSlots.Add(ESlotType::BODY, nullptr);
+	_EquipmentSlots.Add(ESlotType::HANDS, nullptr);
+	_EquipmentSlots.Add(ESlotType::LEGS, nullptr);
+	_EquipmentSlots.Add(ESlotType::FEET, nullptr);
+	_EquipmentSlots.Add(ESlotType::FINGER_1, nullptr);
+	_EquipmentSlots.Add(ESlotType::FINGER_2, nullptr);
+	_EquipmentSlots.Add(ESlotType::NECKLACE, nullptr);
+	_EquipmentSlots.Add(ESlotType::WRIST, nullptr);
+	_EquipmentSlots.Add(ESlotType::ATTACK_DICE, nullptr);
+	_EquipmentSlots.Add(ESlotType::DAMAGE_DICE, nullptr);
+	_EquipmentSlots.Add(ESlotType::TRIAL_DICE, nullptr);
 }
 
-bool UEquipmentComponent::SetItemInSlot(ESlotType Slot, UEquipmentItem* Item)
+bool UEquipmentComponent::SetItemInSlot(ESlotType Slot, const UEquipmentItem* Item)
 {
 	// Проверяем переданный предмет на нуль
 	if (Item == nullptr) {
@@ -43,71 +40,66 @@ bool UEquipmentComponent::SetItemInSlot(ESlotType Slot, UEquipmentItem* Item)
 		return false;
 	}
 	// Устанавливаем в слот предмет
-	(*find_t).Item = Item;
+	_EquipmentSlots[Slot] = Item;
 	return true;
 }
 
-UEquipmentItem* UEquipmentComponent::WithdrawItemFromSlot(ESlotType Slot)
+const UEquipmentItem* UEquipmentComponent::WithdrawItemFromSlot(ESlotType Slot)
 {
-	auto S = _EquipmentSlots.Find(Slot);
-	if (S == nullptr) {
-		return nullptr;
-	}
-
-	auto ReturnItem = S->Item;
-	S->Item = nullptr;
-
-	return ReturnItem;
-}
-
-UEquipmentItem* UEquipmentComponent::GetEquipmentItemFromList(ESlotType Slot)
-{
-	auto item_t = _EquipmentSlots.Find(Slot);
-	if (item_t) {
-		return (*item_t).Item;
+	if (_EquipmentSlots.Contains(Slot) == true) {
+		auto w_item = _EquipmentSlots[Slot];
+		_EquipmentSlots[Slot] = nullptr;
+		return w_item;
 	}
 	else {
 		return nullptr;
 	}
 }
 
-TMap<ESlotType, FEquipmentSlot> UEquipmentComponent::GetEquipmentSlotList() const
+const UEquipmentItem* UEquipmentComponent::GetEquipmentItemFromList(ESlotType Slot) const
+{
+	if (_EquipmentSlots.Contains(Slot) == true)
+	{
+		return _EquipmentSlots[Slot];
+	}
+	else {
+		return nullptr;
+	}
+}
+
+const TMap<ESlotType, const UEquipmentItem*>& UEquipmentComponent::GetEquipmentList() const
 {
 	return _EquipmentSlots;
 }
 
-FEquipmentSlot* UEquipmentComponent::GetEquipmentSlot(ESlotType Slot)
-{
-	return _EquipmentSlots.Find(Slot);
-}
 
-bool UEquipmentComponent::SetDiceInSlot(EDice Slot, UDice* Dice)
+const UDice* UEquipmentComponent::GetDiceFromSlot(ESlotType Slot) const
 {
-	auto dice_d = _DiceList.Find(Slot);
-	if (dice_d) {
-		(*dice_d) = Dice;
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-
-UDice* UEquipmentComponent::GetDiceFromSlot(EDice Slot) const
-{
-	auto dice_d = _DiceList.Find(Slot);
-	if (dice_d) {
-		return *dice_d;
+	// Проверка, что слот - нужный
+	if (Slot == ESlotType::TRIAL_DICE || Slot == ESlotType::DAMAGE_DICE || Slot == ESlotType::TRIAL_DICE) {
+		// Находим кубик по слоту
+		auto t_dice = _EquipmentSlots.Find(Slot);
+		if (*t_dice == nullptr) {
+			return nullptr;
+		}
+		else {
+			// Возвращаем нужный тип объекта кубика
+			return Cast<UDice>(*t_dice);
+		}
 	}
 	else {
 		return nullptr;
 	}
 }
 
-TMap<EDice, UDice*> UEquipmentComponent::GetDiceList() const
+const TMap<ESlotType, const UDice*> UEquipmentComponent::GetDiceList() const
 {
-	return _DiceList;
+	TMap<ESlotType, const UDice*> DiceList = {
+		{ESlotType::ATTACK_DICE, GetDiceFromSlot(ESlotType::ATTACK_DICE)},
+		{ESlotType::ATTACK_DICE, GetDiceFromSlot(ESlotType::DAMAGE_DICE)},
+		{ESlotType::ATTACK_DICE, GetDiceFromSlot(ESlotType::TRIAL_DICE)},
+	};
+	return DiceList;
 }
 
 // Called when the game starts

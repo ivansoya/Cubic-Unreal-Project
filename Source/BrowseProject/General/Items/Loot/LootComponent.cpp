@@ -47,56 +47,35 @@ void ULootComponent::SpawnCustomLoot(FTransform SpawnTransform)
 			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
 			continue;
 		}
-		// Проверяем является ли предмет броней
-		Data = CastFindStruct<FArmorDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
+		// Проверяем является ли предмет экипируемым
+		Data = CastFindStruct<FEquipmentDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
 		if (Data != nullptr) {
-			ItemObject = NewObject<UArmor>();
-			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
-			continue;
-		}
-		// Проверяем является ли предмет оружием
-		Data = CastFindStruct<FWeaponDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
-		if (Data != nullptr) {
-			// потенциально вылетный кусок кода
-			EWeaponType ewt = static_cast<FWeaponDataRow*>(Data)->WeaponClass;
-			if (ewt == EWeaponType::STAFF || ewt == EWeaponType::BOW || ewt == EWeaponType::TWOHANDED_SWORD) {
-				ItemObject = NewObject<UTwoHanded>();
+			// Смотрим тип предмеиа и создаем соответсвующий предмет
+			switch (static_cast<FEquipmentDataRow*>(Data)->ItemType) {
+				case EEquipmentItemType::WEAPON:
+					ItemObject = NewObject<UWeapon>();
+					break;
+				case EEquipmentItemType::ARMOR:
+					ItemObject = NewObject<UArmor>();
+					break;
+				case EEquipmentItemType::ONESLOT_JEWELERY:
+					ItemObject = NewObject<UJewelry>();
+					break;
+				case EEquipmentItemType::RING:
+					ItemObject = NewObject<URing>();
+					break;
+				case EEquipmentItemType::DICE:
+					ItemObject = NewObject<UDice>();
+					break;
+				default:
+					// Если никакой предмет не подошел по типу - пропуск
+					continue;
+					break;
 			}
-			else if (ewt == EWeaponType::ONEHANDED_SWORD || ewt == EWeaponType::DAGGER) {
-				ItemObject = NewObject<UOneHanded>();
-			}
-			else {
-				ItemObject = NewObject<USesquialteral>();
-			}
-			// Конец потенциально вылетного часть кода
+			// Спавн предмета в мире
 			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
 			continue;
 		}
-		// Проверяем является ли предмет бижутерией
-		Data = CastFindStruct<FJewelryDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
-		if (Data != nullptr) {
-			ItemObject = NewObject<UJewelry>();
-			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
-			continue;
-		}
-		// Проверяем является ли предмет кольцом
-		Data = CastFindStruct<FRingDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
-		if (Data != nullptr) {
-			ItemObject = NewObject<URing>();
-			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
-			continue;
-		}
-		// Проверяем является при предмет кубиком
-		Data = CastFindStruct<FDiceDataRow>(t.ItemSource.DataTable, t.ItemSource.RowName);
-		if (Data != nullptr) {
-			ItemObject = NewObject<UDice>();
-			SpawnItemAtWorld(ItemObject, Data, SpawnTransform);
-		}
-		// Произошла ошибка в определении класса предмета
-		//else {
-		//	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Error"));
-		//	continue;
-		//}
 	}
 }
 

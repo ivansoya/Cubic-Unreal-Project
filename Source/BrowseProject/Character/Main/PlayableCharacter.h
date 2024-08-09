@@ -55,21 +55,9 @@ protected:
 	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintReadWrite, Category = "Equipment Events", meta = (DisplayName = "On Withdraw Item Signature", AllowPrivateAccess = "true"))
 	FOnWithdrawItemSignature _OnWithdrawItem;
 
-	// Делегат, который активируется при добавлении предмета в инвентарь
-	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Events", meta = (DisplayName = "On Add Item To Inventory Signature", AllowPrivateAccess = "true"))
-	FOnAddItemToInventorySignature _OnAddItemToInventory;
-
-	// Делегат, который активируется при удалении предмета из инвентаря
-	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Events", meta = (DisplayName = "On Remove Item From Inventory Signature", AllowPrivateAccess = "true"))
-	FOnRemoveItemFromInventorySignature _OnRemoveItemFromInventory;
-
-	// Делегат, который активируется при добавлении кубика в карман
-	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Events", meta = (DisplayName = "On Put Dice In Pocket", AllowPrivateAccess = "true"))
-	FOnPutMagicDiceInPocketSignature _OnPutMagicDiceInPocket;
-
-	// Делегат, который активируется при удалении кубика из кармана
-	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Events", meta = (DisplayName = "On Take Off Dice From Pocket", AllowPrivateAccess = "true"))
-	FOnTakeOffDiceFromPocketSignature _OnTakeOffDiceFromPocket;
+	// Делегат, который активируется при изменении инвентаря
+	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintReadWrite, Category = "Inventory Events", meta = (DisplayName = "On Inventory Changed Signature", AllowPrivateAccess = "true"))
+	FOnInventoryChangedSignature _OnInventoryChanged;
 
 	//=====================================================
 	//	Делегаты IStat
@@ -92,6 +80,9 @@ protected:
 	UPROPERTY(BlueprintAssignable, VisibleAnywhere, BlueprintReadWrite, Category = "Stat Events", meta = (DisplayName = "On Healed", AllowPrivateAccess = "true"))
 	FOnActorHealedSignature _OnHealed;
 
+//===============================================================================
+// Основные статы для персонажей
+//===============================================================================
 private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Stats", meta = (DisplayName = "Health", AllowPrivateAccess = "true"))
@@ -105,6 +96,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Stats", meta = (DisplayName = "Durability", AllowPrivateAccess = "true"))
 	int32 _Durability;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Stats", meta = (DisplayName = "Weapon Stances", AllowPrivateAccess = "true"))
+	TArray<EWeaponType> _WeaponStances;
 
 protected:
 	// Called when the game starts or when spawned
@@ -190,7 +184,7 @@ public:
 	/// </summary>
 	/// <param name="Item">Указатель на одеваемый предмет</param>
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	bool EquipItemOnCharacter(UEquipmentItem* Item, ESlotType Slot);
+	bool EquipItemOnCharacter(const UEquipmentItem* Item, ESlotType Slot);
 
 	/// <summary>
 	/// Функция для смены модели части персонажа
@@ -218,51 +212,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool WithdrawItemFromCharacterSlot(ESlotType Slot);
 
-	/// <summary>
-	/// Возвращает указатель на структуру слота
-	/// </summary>
-	//UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	virtual FEquipmentSlot* GetSlotStructure(ESlotType Slot) override;
-
-	/// <summary>
-	/// Устанавливает новый статус слота
-	/// </summary>
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	bool ChangeSlotStatus(ESlotType Slot, ESlotStatus Status);
-
-	/// <summary>
-	/// Возвращает дефолтный статус слота экипировки
-	/// </summary>
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	bool ReturnDefaultSlotStatus(ESlotType Slot, ESlotStatus Status);
-
-	/// <summary>
-	/// Возвращает магический кубик из слота кармана
-	/// </summary>
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	UDice* GetDiceFromSlot(EDice Slot);
-
-	/// <summary>
-	/// Кладет магический кубик в переданный слот кармана
-	/// </summary>
-	/// <param name="Slot">Слот</param>
-	/// <param name="Dice">Кубик</param>
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	bool PutDiceInPocket(EDice Slot, UDice* Dice);
-
-	/// <summary>
-	/// Выкладывает кубик из кармана соответствующего слота
-	/// </summary>
-	/// <param name="Slot">Слот</param>
-	/// <returns></returns>
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	bool TakeOffDiceFromPocket(EDice Slot);
-
 	// Геттеры делегатов
 	virtual FOnEquipItemSignature& GetOnEquipItemSignature() override;
 	virtual FOnWithdrawItemSignature& GetOnWithdrawItemSignature() override;
-	virtual FOnPutMagicDiceInPocketSignature& GetOnPutMagicDiceInPocketSignature() override;
-	virtual FOnTakeOffDiceFromPocketSignature& GetOnTakeOffDiceFromPocketSignature() override;
 
 //===============================================================================
 // Объявление методов интерфейса Inventory
@@ -275,7 +227,7 @@ public:
 	/// <param name="EquipItem">Предмет экипировки</param>
 	/// <returns></returns>
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	EStatusOnAdd AddEquipItemToInventory(UEquipmentItem* EquipItem);
+	EStatusOnAdd AddEquipItemToInventory(const UEquipmentItem* EquipItem);
 
 	/// <summary>
 	/// Удаляет экипируемый предмет из инвентаря
@@ -283,7 +235,7 @@ public:
 	/// <param name="EquipmentItem">Предмет, который нужно удалить</param>
 	/// <returns>Удаляемый предмет</returns>
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void RemoveEquipItemFromInventoryByFind(UEquipmentItem* RemoveItem);
+	void RemoveEquipItemFromInventoryByFind(const UEquipmentItem* RemoveItem);
 
 	/// <summary>
 	/// Добавление предмета в список обычных предметов
@@ -291,19 +243,13 @@ public:
 	/// <param name="BasicItem">Обыкновенный предмет</param>
 	/// <returns></returns>
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	EStatusOnAdd AddBasicItemToInventory(UBasicItem* BasicItem);
+	EStatusOnAdd AddBasicItemToInventory(const UBasicItem* BasicItem);
 
 	/// <summary>
-	/// Функция возврата делегата экипировки предметов 
+	/// Функция возврата делегата изменения инвентаря
 	/// </summary>
 	/// <returns></returns>
-	virtual FOnAddItemToInventorySignature& GetOnAddItemToInventorySignature() override;
-
-	/// <summary>
-	/// Функция возврата делегата снятия предметов 
-	/// </summary>
-	/// <returns></returns>
-	virtual FOnRemoveItemFromInventorySignature& GetOnRemoveItemFromInventorySignature() override;
+	virtual FOnInventoryChangedSignature& GetOnAddItemToInventorySignature() override;
 
 
 //===============================================================================

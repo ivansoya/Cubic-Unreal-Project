@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "BrowseProject/Character/Utility/SupportingStructs.h"
+#include "BrowseProject/General/Items/System/ItemEnums.h"
 #include "EquipmentComponent.generated.h"
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -19,12 +19,8 @@ public:
 private:
 
 	// Перечень экипировки персонажа
-	UPROPERTY(VisibleAnywhere, Category = "Equipment", meta = (DisplayName = "Equipment List", AllowPrivateAccess = "true"))
-	TMap<ESlotType, FEquipmentSlot> _EquipmentSlots;
-
-	// Список магических кубиков у персонажа
-	UPROPERTY(VisibleAnywhere, Category = "Equipment", meta = (DisplayName = "Dice List", AllowPrivateAccess = "true"))
-	TMap<EDice, UDice*> _DiceList;
+	//UPROPERTY(VisibleAnywhere, Category = "Equipment", meta = (DisplayName = "Equipment List", AllowPrivateAccess = "true"))
+	TMap<ESlotType, const UEquipmentItem*> _EquipmentSlots;
 
 protected:
 	// Called when the game starts
@@ -41,7 +37,7 @@ public:
 	/// <param name="Item">Предмет экипировки</param>
 	/// <returns></returns>
 	UFUNCTION(BlueprintCallable)
-	bool SetItemInSlot(ESlotType Slot, UEquipmentItem* Item);
+	bool SetItemInSlot(ESlotType Slot, const UEquipmentItem* Item);
 
 	/// <summary>
 	/// Удаляет предмет из слота
@@ -49,48 +45,34 @@ public:
 	/// <param name="Slot">Тип слота</param>
 	/// <returns>Указатель на удаляемый предмет</returns>
 	UFUNCTION(BlueprintCallable)
-	UEquipmentItem* WithdrawItemFromSlot(ESlotType Slot);
+	const UEquipmentItem* WithdrawItemFromSlot(ESlotType Slot);
 
 	/// <summary>
 	/// Возвращает карту со списком всех слотов экипировки
 	/// </summary>
 	/// <returns></returns>
-	UFUNCTION(BlueprintCallable)
-	TMap<ESlotType, FEquipmentSlot> GetEquipmentSlotList() const;
+	//UFUNCTION(BlueprintCallable)
+	const TMap<ESlotType, const UEquipmentItem*>& GetEquipmentList() const;
 
 	/// <summary>
 	/// Возвращает предмет из слота инвентаря
 	/// </summary>
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	UEquipmentItem* GetEquipmentItemFromList(ESlotType Slot);
+	const UEquipmentItem* GetEquipmentItemFromList(ESlotType Slot) const;
 
 	/// <summary>
-	/// Устанавливает магический кубик в слот
+	/// Возвращает объект кубика из слота экипировки
 	/// </summary>
-	/// <param name="Slot">Слот</param>
-	/// <param name="Dice">Кубик</param>
-	/// <returns>Истина при удачной установке</returns>
+	/// <param name="Slot">Слот экипировки. Возможные значения: ATTACK_DICE, DAMAGE_DICE, TRIAL_DICE
+	/// </param>
+	/// <returns></returns>
 	UFUNCTION(BlueprintCallable)
-	bool SetDiceInSlot(EDice Slot, UDice* Dice);
-
-	/// <summary>
-	/// Возвращает кубик из слота
-	/// </summary>
-	UFUNCTION(BlueprintCallable)
-	UDice* GetDiceFromSlot(EDice Slot) const;
+	const UDice* GetDiceFromSlot(ESlotType Slot) const;
 
 	/// <summary>
 	/// Возвращает список кубиков
 	/// </summary>
-	UFUNCTION(BlueprintCallable)
-	TMap<EDice, UDice*> GetDiceList() const;
-
-	/// <summary>
-	/// Возвращает структуру слота экипировки
-	/// </summary>
-	/// <param name="Slot">Тип слота</param>
-	/// <returns>Структура, хранит в себе предмет и статус слота</returns>
 	//UFUNCTION(BlueprintCallable)
-	FEquipmentSlot* GetEquipmentSlot(ESlotType Slot);
+	const TMap<ESlotType, const UDice*> GetDiceList() const;
 		
 };

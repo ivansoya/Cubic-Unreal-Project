@@ -11,12 +11,14 @@
 UENUM(BlueprintType)
 enum class EWeaponType : uint8
 {
-	ONEHANDED_SWORD = 0 UMETA(DisplayName = "Onehanded Sword"),
-	TWOHANDED_SWORD = 1 UMETA(DisplayName = "Twohanded Sword"),
-	BASTARD = 2 UMETA(DisplayName = "Bastard"),
-	DAGGER = 3 UMETA(DisplayName = "Dagger"),
-	BOW = 4 UMETA(DisplayName = "Bow"),
-	STAFF = 5 UMETA(DisplayName = "Staff"),
+	NONE_TYPE = 0 UMETA(DisplayName = "Type for non-used in weapon"),
+	SWORD_SHIELD = 1 UMETA(DisplayName = "Sword with Shield"),
+	TWOHANDED_SWORD = 2 UMETA(DisplayName = "Twohanded Sword"),
+	BASTARD = 3 UMETA(DisplayName = "Bastard"),
+	DAGGER_DOUBLE = 4 UMETA(DisplayName = "Daggers"),
+	BOW = 5 UMETA(DisplayName = "Bow"),
+	STAFF = 6 UMETA(DisplayName = "Staff"),
+	MASSIVE_HAMMER = 7 UMETA(DisplayName = "Massive Hammer"),
 };
 
 /**
@@ -25,8 +27,8 @@ enum class EWeaponType : uint8
 UENUM(BlueprintType)
 enum class ESlotType : uint8
 {
-	LEFT_HAND = 0 UMETA(DisplayName = "Left Hand"),
-	RIGHT_HAND = 1 UMETA(DisplayName = "Right Hand"),
+	NONE_TYPE = 0 UMETA(DisplayName = "NONE"),
+	WEAPON = 1 UMETA(DisplayName = "Weapon"),
 	HEAD = 2 UMETA(DisplayName = "Head"),
 	BODY = 3 UMETA(DisplayName = "Body"),
 	HANDS = 4 UMETA(DisplayName = "Hands"),
@@ -36,25 +38,7 @@ enum class ESlotType : uint8
 	WRIST = 8 UMETA(DisplayName = "Wrist"),
 	FINGER_1 = 9 UMETA(DisplayName = "Finger 1"),
 	FINGER_2 = 10 UMETA(DisplayName = "Finger 2"),
-};
-
-UENUM(BlueprintType)
-enum class EDice : uint8
-{
-	ATTACK_DICE = 0 UMETA(DisplayName = "Attack Dice"),
-	DAMAGE_DICE = 1 UMETA(DisplayName = "Damage Dice"),
-	TRIAL_DICE = 2 UMETA(DisplayName = "Trial Dice"),
-};
-
-/**
- * Перечисление статусов слотов экипировки
- */
-UENUM(BlueprintType)
-enum class ESlotStatus : uint8
-{
-	NOT_EXISTING = 0 UMETA(DisplayName = "Not Existing"),
-	BLOCKED = 1 UMETA(DisplayName = "Blocked"),
-	DEFAULT = 2 UMETA(DisplayName = "Default"),
-	SESQUIALTERAL = 3 UMETA(DisplayName = "Sesquialteral"),
-	TWOHANDED = 4 UMETA(DisplayName = "Twohanded"),
+	ATTACK_DICE = 11 UMETA(DisplayName = "Attack Dice"),
+	DAMAGE_DICE = 12 UMETA(DisplayName = "Damage Dice"),
+	TRIAL_DICE = 13 UMETA(DisplayName = "Trial Dice"),
 };

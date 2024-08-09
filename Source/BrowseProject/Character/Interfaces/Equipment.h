@@ -4,20 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "BrowseProject/Character/Utility/SupportingStructs.h"
+#include "BrowseProject/General/Items/System/ItemEnums.h"
 #include "Equipment.generated.h"
 
-// Делегаты для обычной экипировки
+// Делегаты для экипировки
 UDELEGATE()
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipItemSignature, FEquipmentSlot, EquipItem, ESlotType, Slot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnEquipItemSignature, const UEquipmentItem*, EquipItem, ESlotType, Slot);
 UDELEGATE()
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWithdrawItemSignature, FEquipmentSlot, WithdrawSlot, ESlotType, Slot);
-
-// Делегаты для магических кубиков
-UDELEGATE()
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPutMagicDiceInPocketSignature, UDice*, Dice, EDice, Slot);
-UDELEGATE()
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTakeOffDiceFromPocketSignature, UDice*, Dice, EDice, Slot);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWithdrawItemSignature, const UEquipmentItem*, WithdrawSlot, ESlotType, Slot);
 
 class UEquipmentItem;
 class USkeletalMesh;
@@ -40,7 +34,10 @@ class BROWSEPROJECT_API IEquipment
 public:
 
 	UFUNCTION(BlueprintNativeEvent)
-	bool EquipItemOnCharacter(UEquipmentItem* Item, ESlotType Slot);
+	bool GetStatsForRequirements(const int32& Strength, const int32& Dexterity, const int32& Intelligence, const int32& Endurance, const TArray<EWeaponType>& WeaponStances);
+
+	UFUNCTION(BlueprintNativeEvent)
+	bool EquipItemOnCharacter(const UEquipmentItem* Item, ESlotType Slot);
 
 	UFUNCTION(BlueprintNativeEvent)
 	bool WithdrawItemFromCharacterSlot(ESlotType Slot);
@@ -51,29 +48,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent)
 	bool SetBasicSkeletalMeshAtSlot(ESlotType Slot);
 
-	UFUNCTION(BlueprintNativeEvent)
-	bool ChangeSlotStatus(ESlotType Slot, ESlotStatus Status);
-
-	UFUNCTION(BlueprintNativeEvent)
-	bool ReturnDefaultSlotStatus(ESlotType Slot, ESlotStatus Status);
-
-	UFUNCTION(BlueprintNativeEvent)
-	UDice* GetDiceFromSlot(EDice Slot);
-
-	UFUNCTION(BlueprintNativeEvent)
-	bool PutDiceInPocket(EDice Slot, UDice* Dice);
-
-	UFUNCTION(BlueprintNativeEvent)
-	bool TakeOffDiceFromPocket(EDice Slot);
-
-	//UFUNCTION(BlueprintNativeEvent)
-	virtual FEquipmentSlot* GetSlotStructure(ESlotType Slot) = 0;
-
 	virtual FOnEquipItemSignature& GetOnEquipItemSignature() = 0;
 
 	virtual FOnWithdrawItemSignature& GetOnWithdrawItemSignature() = 0;
 
-	virtual FOnPutMagicDiceInPocketSignature& GetOnPutMagicDiceInPocketSignature() = 0;
-
-	virtual FOnTakeOffDiceFromPocketSignature& GetOnTakeOffDiceFromPocketSignature() = 0;
 };

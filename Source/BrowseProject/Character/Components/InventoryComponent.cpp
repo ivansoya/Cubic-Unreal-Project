@@ -54,14 +54,14 @@ void UInventoryComponent::HideItems() const
 	}
 }
 
-void UInventoryComponent::AddEquipItemAtList(UEquipmentItem* Item)
+void UInventoryComponent::AddEquipItemAtList(const UEquipmentItem* Item)
 {
 	if (Item) {
 		_EquipmentItemList.Add(Item);
 	}
 }
 
-UEquipmentItem* UInventoryComponent::GetEquipmentItemFromListByIndex(int32 Index) const
+const UEquipmentItem* UInventoryComponent::GetEquipmentItemFromListByIndex(int32 Index) const
 {
 	if (_EquipmentItemList.Num() <= Index || Index < 0) {
 		return nullptr;
@@ -71,14 +71,14 @@ UEquipmentItem* UInventoryComponent::GetEquipmentItemFromListByIndex(int32 Index
 	}
 }
 
-UEquipmentItem* UInventoryComponent::RemoveEquipmentItemFromListByIndex(int32 Index)
+const UEquipmentItem* UInventoryComponent::RemoveEquipmentItemFromListByIndex(int32 Index)
 {
 	// Проверка индекса
 	if (_EquipmentItemList.Num() <= Index || Index < 0) {
 		return nullptr;
 	}
 	// Проверка есть ли предмет по индексу
-	UEquipmentItem* RemovableItem = _EquipmentItemList[Index];
+	auto RemovableItem = _EquipmentItemList[Index];
 
 	if (RemovableItem == nullptr) {
 		return nullptr;
@@ -90,7 +90,7 @@ UEquipmentItem* UInventoryComponent::RemoveEquipmentItemFromListByIndex(int32 In
 		
 }
 
-bool UInventoryComponent::RemoveEquipmentItemFromListByFind(UEquipmentItem* RemoveItem)
+bool UInventoryComponent::RemoveEquipmentItemFromListByFind(const UEquipmentItem* RemoveItem)
 {
 	int32 Index;
 	if (_EquipmentItemList.Find(RemoveItem, Index) == true) {
@@ -100,7 +100,7 @@ bool UInventoryComponent::RemoveEquipmentItemFromListByFind(UEquipmentItem* Remo
 	return false;
 }
 
-TArray<UEquipmentItem*> UInventoryComponent::GetEquipmentItemList() const
+const TArray<const UEquipmentItem*>& UInventoryComponent::GetEquipmentItemList() const
 {
 	return _EquipmentItemList;
 }

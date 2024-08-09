@@ -49,6 +49,12 @@ APlayableCharacter::APlayableCharacter()
 		{ESlotType::FEET, "Feet"},
 	};
 
+	_WeaponStances = {
+		EWeaponType::SWORD_SHIELD,
+		EWeaponType::BASTARD,
+		EWeaponType::BOW,
+	};
+
 	for (TPair<ESlotType, FName> Slot : _AllTypeMeshes) {
 		USkeletalMeshComponent* SK_Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(Slot.Value);
 		if (SK_Mesh)
@@ -60,7 +66,7 @@ APlayableCharacter::APlayableCharacter()
 			SK_Mesh->bCastDynamicShadow = true;
 			SK_Mesh->bAffectDynamicIndirectLighting = true;
 			SK_Mesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
-			static FName MeshCollisionProfileName(TEXT("CharacterMesh"));
+			static FName MeshCollisionProfileName(TEXT("NoCollision"));
 			SK_Mesh->SetCollisionProfileName(MeshCollisionProfileName);
 			SK_Mesh->SetGenerateOverlapEvents(false);
 			SK_Mesh->SetCanEverAffectNavigation(false);
@@ -167,53 +173,57 @@ void APlayableCharacter::ChangeElementalValue_Implementation(int32 Value, UEleme
 //--------------------------------------
 
 // Функция для одевания предмета на персонажа
-bool APlayableCharacter::EquipItemOnCharacter_Implementation(UEquipmentItem* Item, ESlotType Slot)
+bool APlayableCharacter::EquipItemOnCharacter_Implementation(const UEquipmentItem* Item, ESlotType Slot)
 {
 	if (Item == nullptr) {
 		return false;
 	}
-	auto slot_t = _EquipmentComponent->GetEquipmentSlot(Slot);
-	if (slot_t) {
-		// Проверяем заблокирован ли стол
-		if ((*slot_t).Status <= ESlotStatus::BLOCKED) {
-			return false;
-		}
-		// Проверяем есть ли предмет в слоте, в который мы хотим поставить предмет
-		if ((*slot_t).Item) {
-			// Убираем предмет из слота
-			(*slot_t).Item->WithdrawFromCharacter(this);
-		}
-		// Устанавливаем предмет в слот экипировки персонажа
-		if (_EquipmentComponent->SetItemInSlot(Slot, Item)) {
-			// Вызываем событие, что предмет одет в слот
-			_OnEquipItem.Broadcast(*slot_t, Slot);
-			return true;
-		}
-		else {
-			return false;
-		}
+	auto item_in_slot = _EquipmentComponent->GetEquipmentItemFromList(Slot);
+	// Есть ли в этом слоте предмет
+	if (item_in_slot) {
+		// Место для проверки свободны ли слоты в инвентаре
+		// Отменяем все примененные характеристики к персонажу
+		item_in_slot->AnnulItemStatsFromCharacter(this);
+		// Удаляем предмет из инвентаря
+		_EquipmentComponent->SetItemInSlot(Slot, nullptr);
+		// Возвращаем предмет в инвентарь
+		_InventoryComponent->AddEquipItemAtList(item_in_slot);
 	}
-	else {
-		return false;
-	}
+	// Экипируем предмет в слот
+	_EquipmentComponent->SetItemInSlot(Slot, Item);
+	// Вызываем событие надевания предмета
+	_OnEquipItem.Broadcast(Item, Slot);
+	// Удаляем предмет из инвентаря
+	_InventoryComponent->RemoveEquipmentItemFromListByFind(Item);
+	// Вызываем событие изменение инвентаря
+	_OnInventoryChanged.Broadcast();
+	return true;
 }
 
+// Функция изменения модели части персонажа
 bool APlayableCharacter::SetSkeletalMeshAsCharacterPart_Implementation(USkeletalMesh* SkeletalMesh, ESlotType Slot)
 {
-	auto t = _CharacterParts.Find(Slot);
-	if (SkeletalMesh && t) {
-		(*t)->SetSkeletalMesh(SkeletalMesh);
+	// находим нужную часть, на которую надевается доспех
+	auto SkMesh_t = _CharacterParts.Find(Slot);
+	// Если все найдено
+	if (SkeletalMesh && SkMesh_t) {
+		// Устанавливает новую модедь
+		(*SkMesh_t)->SetSkeletalMesh(SkeletalMesh);
 		return true;
 	}
 	return false;
 }
 
+// Функция возврата модели ее базового внешнего вида
 bool APlayableCharacter::SetBasicSkeletalMeshAtSlot_Implementation(ESlotType Slot)
 {
+	// Находим часть, которую необходимо изменить
 	auto mesh = _DefaultSkeletalParts.Find(Slot);
 	if (mesh) {
+		// Находим модель, на которую нужно вернуть базовую внешность найденной части персонажа
 		auto t = _CharacterParts.Find(Slot);
 		if (*t != nullptr) {
+			// Устанавливает базовую модедь
 			(*t)->SetSkeletalMesh((*mesh));
 			return true;
 		}
@@ -221,69 +231,27 @@ bool APlayableCharacter::SetBasicSkeletalMeshAtSlot_Implementation(ESlotType Slo
 	return false;
 }
 
+// Функция снятия предмета с персонажа
+// Данная функция только переносит объекты между компонентами персонажа
 bool APlayableCharacter::WithdrawItemFromCharacterSlot_Implementation(ESlotType Slot)
 {
+	// Пробуем убрать предмет из слота
 	auto item_t = _EquipmentComponent->WithdrawItemFromSlot(Slot);
+	// Если в слоте не было предмета
 	if (item_t == nullptr) {
+		// ничего не делаем
 		return false;
 	}
+	// Предмет был в слоте и успешно снят
 	else {
-		_OnWithdrawItem.Broadcast(*_EquipmentComponent->GetEquipmentSlot(Slot), Slot);
-		return false;
-	}
-}
-
-FEquipmentSlot* APlayableCharacter::GetSlotStructure(ESlotType Slot)
-{
-	return _EquipmentComponent->GetEquipmentSlot(Slot);
-}
-
-bool APlayableCharacter::ChangeSlotStatus_Implementation(ESlotType Slot, ESlotStatus Status)
-{
-	auto slot_t = _EquipmentComponent->GetEquipmentSlot(Slot);
-	if (slot_t == nullptr) {
-		return false;
-	}
-
-	(*slot_t).Status = Status;
-	return true;
-}
-
-bool APlayableCharacter::ReturnDefaultSlotStatus_Implementation(ESlotType Slot, ESlotStatus Status)
-{
-	auto slot_t = _EquipmentComponent->GetEquipmentSlot(Slot);
-	if (slot_t == nullptr) {
-		return false;
-	}
-
-	(*slot_t).Status = (*slot_t).DefaultStatus;
-	return true;
-}
-
-UDice* APlayableCharacter::GetDiceFromSlot_Implementation(EDice Slot)
-{
-	return _EquipmentComponent->GetDiceFromSlot(Slot);
-}
-
-bool APlayableCharacter::PutDiceInPocket_Implementation(EDice Slot, UDice* Dice)
-{
-	if (Dice == nullptr) {
-		return false;
-	}
-	if (_EquipmentComponent->SetDiceInSlot(Slot, Dice) == true) {
-		_OnPutMagicDiceInPocket.Broadcast(Dice, Slot);
+		// Вызываем делегат надевания предмета
+		_OnWithdrawItem.Broadcast(item_t, Slot);
+		//Добавляем предмет в инвентарь
+		_InventoryComponent->AddEquipItemAtList(item_t);
+		// Вызываем делегат обновления инвентаря
+		_OnInventoryChanged.Broadcast();
 		return true;
 	}
-	return false;
-}
-
-bool APlayableCharacter::TakeOffDiceFromPocket_Implementation(EDice Slot)
-{
-	if (_EquipmentComponent->SetDiceInSlot(Slot, nullptr) == true) {
-		_OnTakeOffDiceFromPocket.Broadcast(nullptr, Slot);
-		return true;
-	}
-	else return false;
 }
 
 FOnEquipItemSignature& APlayableCharacter::GetOnEquipItemSignature()
@@ -296,32 +264,22 @@ FOnWithdrawItemSignature& APlayableCharacter::GetOnWithdrawItemSignature()
 	return _OnWithdrawItem;
 }
 
-FOnPutMagicDiceInPocketSignature& APlayableCharacter::GetOnPutMagicDiceInPocketSignature()
-{
-	return _OnPutMagicDiceInPocket;
-}
-
-FOnTakeOffDiceFromPocketSignature& APlayableCharacter::GetOnTakeOffDiceFromPocketSignature()
-{
-	return _OnTakeOffDiceFromPocket;
-}
-
 //--------------------------------------
 // Реализация методов интерфейса Inventory
 //--------------------------------------
 
-void APlayableCharacter::RemoveEquipItemFromInventoryByFind_Implementation(UEquipmentItem* RemoveItem)
+void APlayableCharacter::RemoveEquipItemFromInventoryByFind_Implementation(const UEquipmentItem* RemoveItem)
 {
 	if (_InventoryComponent->RemoveEquipmentItemFromListByFind(RemoveItem) == true) {
-		_OnRemoveItemFromInventory.Broadcast(RemoveItem);
+		_OnInventoryChanged.Broadcast();
 	}
 }
 
-EStatusOnAdd APlayableCharacter::AddEquipItemToInventory_Implementation(UEquipmentItem* EquipItem)
+EStatusOnAdd APlayableCharacter::AddEquipItemToInventory_Implementation(const UEquipmentItem* EquipItem)
 {
 	if (EquipItem) {
 		_InventoryComponent->AddEquipItemAtList(EquipItem);
-		_OnAddItemToInventory.Broadcast(EquipItem);
+		_OnInventoryChanged.Broadcast();
 		return EStatusOnAdd::ADDED;
 	}
 	else {
@@ -329,20 +287,15 @@ EStatusOnAdd APlayableCharacter::AddEquipItemToInventory_Implementation(UEquipme
 	}
 }
 
-EStatusOnAdd APlayableCharacter::AddBasicItemToInventory_Implementation(UBasicItem* BasicItem)
+EStatusOnAdd APlayableCharacter::AddBasicItemToInventory_Implementation(const UBasicItem* BasicItem)
 {
-	_OnAddItemToInventory.Broadcast(BasicItem);
+	_OnInventoryChanged.Broadcast();
 	return EStatusOnAdd::NULL_ERROR;
 }
 
-FOnAddItemToInventorySignature& APlayableCharacter::GetOnAddItemToInventorySignature()
+FOnInventoryChangedSignature& APlayableCharacter::GetOnAddItemToInventorySignature()
 {
-	return _OnAddItemToInventory;
-}
-
-FOnRemoveItemFromInventorySignature& APlayableCharacter::GetOnRemoveItemFromInventorySignature()
-{
-	return _OnRemoveItemFromInventory;
+	return _OnInventoryChanged;
 }
 
 //-------------------------------------

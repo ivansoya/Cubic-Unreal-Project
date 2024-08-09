@@ -10,41 +10,23 @@
 #include "BrowseProject/General/Items/Utility/WeaponDamage.h"
 #include "ItemData.generated.h"
 
-/**
- * 
- */
-USTRUCT(BlueprintType)
-struct BROWSEPROJECT_API FItemDataRow : public FTableRowBase
+/// <summary>
+/// Перечисление для определения типа предмета, в первую очередь для редактора.
+/// Данное перечисление определит, какой тип объекта создастся при генерации внутри игры
+/// </summary>
+UENUM(BlueprintType)
+enum class EEquipmentItemType : uint8
 {
-	GENERATED_USTRUCT_BODY()
+	WEAPON = 0 UMETA(DisplayName = "Weapon"),
+	ARMOR = 1 UMETA(DisplayName = "Armor"),
+	ONESLOT_JEWELERY = 2 UMETA(DisplayName = "Oneslot Jewelery"),
+	RING = 3 UMETA(DisplayName = "Ring"),
+	DICE = 4 UMETA(DisplayName = "Magic Dice"),
+};
 
-public:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "World Mesh"), Category = "Appearance")
-	UStaticMesh* WorldMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Set of Icons"), Category = "Appearance")
-	FIcon IconSet;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item Name"), Category = "Appearance")
-	FString Name;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item Description"), Category = "Appearance")
-	FText Description;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Rarity"), Category = "Item Stats")
-	URarity* Rarity;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Stackable"), Category = "Item Stats")
-	bool IsStackable;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Cost of Item"), Category = "Item Stats")
-	int Cost;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item ID", ExposeOnSpawn = "True"), Category = "Item Stats")
-	int ID;
-}; 
-
+/// <summary>
+/// Структура аффикса предмета
+/// </summary>
 USTRUCT(BlueprintType)
 struct BROWSEPROJECT_API FAffixData
 {
@@ -57,98 +39,160 @@ struct BROWSEPROJECT_API FAffixData
 	int32 Tier;
 };
 
-// For not use in blueprints
+UCLASS()
+class BROWSEPROJECT_API UWeaponSocketNames : public UObject
+{
+	GENERATED_BODY()
+
+	UFUNCTION(CallInEditor, BlueprintCallable)
+	static TArray<FName> GetSocketOptions()
+	{
+		return {
+			"Soc_RightHand",
+			"Soc_LeftHand",
+			"Soc_ShieldArmed",
+			"Soc_ShieldHided",
+			"Soc_RightTwoHanded_Hided",
+			"Soc_LeftTwoHanded_Hided",
+			"Soc_RightHand_Hided",
+			"Soc_LeftHand_Hided",
+		};
+	}
+};
+
+USTRUCT(BlueprintType)
+struct BROWSEPROJECT_API FWeaponAppearance
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Is Weapon is Double?"))
+	bool IsDouble;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Static Mesh of RIGHT Hand Weapon"))
+	TObjectPtr<UStaticMesh> RightHandWeaponMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket At Hands of RIGHT Hand Weapon", DisplayAfter = "RightHandWeaponMesh", GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	FName RightHandWeaponSocketInHands;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Hided of RIGHT Hand Weapon", DisplayAfter = "RightHandWeaponSocketInHands", GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	FName RightHandWeaponSocketHided;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Static Mesh of LEFT Hand Weapon", EditCondition = "IsDouble == true", EditConditionHides))
+	TObjectPtr<UStaticMesh> LeftHandWeaponMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket At Hands of LEFT Hand Weapon", DisplayAfter = "LeftHandWeaponMesh", EditCondition = "IsDouble == true", EditConditionHides, GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	FName LeftHandWeaponSocketInHands;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Hided of LEFT Hand Weapon", DisplayAfter = "LeftHandWeaponSocketInHands", EditCondition = "IsDouble == true", EditConditionHides, GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	FName LeftHandWeaponSocketHided;
+
+};
+
+/// <summary>
+/// Базовая структура предметов
+/// </summary>
+USTRUCT(BlueprintType)
+struct BROWSEPROJECT_API FItemDataRow : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "World Mesh", DisplayPriority = "4"), Category = "Appearance")
+	UStaticMesh* WorldMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Set of Icons", DisplayPriority = "5"), Category = "Appearance")
+	FIcon IconSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item Name", DisplayPriority = "6"), Category = "Appearance")
+	FString Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item Description", DisplayPriority = "7"), Category = "Appearance")
+	FText Description;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Rarity", DisplayPriority = "8"), Category = "General Info")
+	URarity* Rarity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Stackable", DisplayPriority = "9"), Category = "General Info")
+	bool IsStackable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Cost of Item", DisplayPriority = "10"), Category = "General Info")
+	int Cost;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "Item ID", ExposeOnSpawn = "True", DisplayPriority = "1"))
+	int ID;
+}; 
+
+/// <summary>
+/// Структура для всех предметов экипировки
+/// Тип предмета определяет, какие поля доступны для редактирования, какие нет
+/// </summary>
 USTRUCT()
 struct BROWSEPROJECT_API FEquipmentDataRow : public FItemDataRow
 {
 	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Type of Item", DisplayPriority = "2"))
+	EEquipmentItemType ItemType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "List of Requirements"))
 	TMap<EStatKey, int> Requirements;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", meta = (DisplayName = "List of Additional Affixes"))
 	TArray<FAffixData> Affixes;
-};
 
-USTRUCT(BlueprintType)
-struct BROWSEPROJECT_API FDiceDataRow : public FEquipmentDataRow
-{
-	GENERATED_BODY()
+	//==========================
+	// Свойства предмета, если ItemType == EEquipmentItemType::WEAPON
+	//==========================
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
-	EDice DiceSlot;
+	// Определяет тип оружия и как оно будет впоследствии одеваться
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Weapon Class", EditCondition = "ItemType == EEquipmentItemType::WEAPON", EditConditionHides))
+	EWeaponType WeaponClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", meta = (DisplayName = "Weapon Appearance", EditCondition = "ItemType == EEquipmentItemType::WEAPON", EditConditionHides))
+	FWeaponAppearance WeaponMeshes;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Weapon Damage", EditCondition = "ItemType == EEquipmentItemType::WEAPON", EditConditionHides))
+	FWeaponDamage WeaponDamage;
+
+	//==========================
+	// Свойства предмета, если ItemType == EEquipmentItemType::ARMOR
+	//==========================
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot", ValidEnumValues = "HEAD, BODY, HANDS, LEGS, FEET", 
+		EditCondition = "ItemType == EEquipmentItemType::ARMOR", EditConditionHides))
+	ESlotType ArmorSlot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", meta = (DisplayName = "Mesh On Equip", EditCondition = "ItemType == EEquipmentItemType::ARMOR", EditConditionHides))
+	USkeletalMesh* ComponentBodyMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Key of Main Stat", EditCondition = "ItemType == EEquipmentItemType::ARMOR", EditConditionHides))
+	EStatKey ArmorKeyStat;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Stat Value", EditCondition = "ItemType == EEquipmentItemType::ARMOR", EditConditionHides))
+	int ArmorValueStat;
+
+	//==========================
+	// Свойства предмета, если ItemType == EEquipmentItemType::ONESLOT_JEWELERY
+	//==========================
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot", ValidEnumValues = "NECKLACE, WRIST",
+		EditCondition = "ItemType == EEquipmentItemType::ONESLOT_JEWELERY", EditConditionHides))
+	ESlotType JewelrySlot;
+
+	//==========================
+	// Свойства предмета, если ItemType == EEquipmentItemType::RING
+	//==========================
+
+	//==========================
+	// Свойства предмета, если ItemType == EEquipmentItemType::DICE
+	//==========================
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot", ValidEnumValues = "ATTACK_DICE, DAMAGE_DICE, TRIAL_DICE", EditCondition = "ItemType == EEquipmentItemType::DICE", EditConditionHides))
+	ESlotType DiceSlot;
 
 	// Index - number of Facet
 	// Value - Value on Facet
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dice Stats", meta = (DisplayName = "Array of Value Facets on Dice"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", meta = (DisplayName = "Array of Value Facets on Dice", EditCondition = "ItemType == EEquipmentItemType::DICE", EditConditionHides))
 	TArray<int32> Facets;
-};
-
-UENUM(Meta = (Bitglags, UseEnumValuesAsMaskValuesInEditor = "true"))
-enum class EArmorSlots
-{
-	EAC_Head = ESlotType::HEAD UMETA(DisplayName = "Head"),
-	EAC_Body = ESlotType::BODY UMETA(DisplayName = "Body"),
-	EAC_Hands = ESlotType::HANDS UMETA(DisplayName = "Hands"),
-	EAC_Legs = ESlotType::LEGS UMETA(DisplayName = "Legs"),
-	EAC_Feet = ESlotType::FEET UMETA(DisplayName = "Feet"),
-};
-ENUM_CLASS_FLAGS(EArmorSlots);
-
-USTRUCT(BlueprintType)
-struct BROWSEPROJECT_API FArmorDataRow : public FEquipmentDataRow
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot", Bitmask, BitmaskEnum = "EArmorSlots"))
-	ESlotType ArmorSlot;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", meta = (DisplayName = "Mesh On Equip"))
-	USkeletalMesh* ComponentBodyMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", Meta = (DisplayName = "Key of Main Stat"))
-	EStatKey ArmorKeyStat;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor Specials", Meta = (DisplayName = "Stat Value"))
-	int ArmorValueStat;
-};
-
-USTRUCT(BlueprintType)
-struct BROWSEPROJECT_API FWeaponDataRow : public FEquipmentDataRow
-{
-	GENERATED_BODY()
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Mesh"))
-	UStaticMesh* WeaponMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Damage"))
-	FWeaponDamage WeaponDamage;
-
-	// Определяет тип оружия и как оно будет впоследствии одеваться
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Specials", Meta = (DisplayName = "Weapon Class"))
-	EWeaponType WeaponClass;
-};
-
-UENUM(Meta = (Bitglags, UseEnumValuesAsMaskValuesInEditor = "true"))
-enum class EJewelrySlots
-{
-	EJC_Necklace = ESlotType::NECKLACE UMETA(DisplayName = "Necklace"),
-	EJC_Wrist = ESlotType::WRIST UMETA(DisplayName = "Wrist"),
-};
-ENUM_CLASS_FLAGS(EJewelrySlots);
-
-USTRUCT(BlueprintType)
-struct BROWSEPROJECT_API FJewelryDataRow : public FEquipmentDataRow
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Stats", Meta = (DisplayName = "Item Slot", Bitmask, BitmaskEnum = "EJewelrySlots"))
-	ESlotType JewelrySlot;
-};
-
-USTRUCT(BlueprintType)
-struct BROWSEPROJECT_API FRingDataRow : public FEquipmentDataRow
-{
-	GENERATED_BODY()
 };

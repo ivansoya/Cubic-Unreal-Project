@@ -10,16 +10,23 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Engine/LocalPlayer.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "BrowseProject/Character/Interfaces/Stat.h"
+#include "BrowseProject/UI/Targeting/TargetInfoBar.h"
 #include "BrowseProject/Character/Utility/PickUpCollider.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AMainPlayerController::AMainPlayerController()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
 	FollowTime = 0.f;
+
+	_OnDisplayTargetBar.AddDynamic(this, &AMainPlayerController::SetTargetInfo);
+	_OnHideTargetBar.AddDynamic(this, &AMainPlayerController::HideTargetInfo);
 }
 
 void AMainPlayerController::BeginPlay()
@@ -32,6 +39,54 @@ void AMainPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
+}
+
+void AMainPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime); 
+
+	// Назначение переменных
+	TArray<TEnumAsByte<EObjectTypeQuery>> Channels = { OTQ_Pawn, OTQ_Collectibles } ;
+	FHitResult HitResult;
+	// Находим объекты под курсором 
+	GetHitResultUnderCursorForObjects(Channels, true, HitResult);
+	AActor* FoundedActor = HitResult.GetActor();
+	const IStatInterface* CastingResult = Cast<IStatInterface>(FoundedActor);
+	// Если не найден актер и нет цели, то ничего не делаем;
+	if (CastingResult == nullptr && _Target == nullptr) {
+		return;
+	}
+	// Если актер не найден, но была цель, то скрываем полоску хп
+	else if (CastingResult == nullptr && _Target != nullptr) {
+		//_OnHideTargetBar.
+		// Вызываем ивент по скрытию полоски хп
+		_OnHideTargetBar.Broadcast();
+		_Target = nullptr;
+	}
+	// Если был найден объект
+	else if (CastingResult != nullptr) {
+		// Если цель такая же, как и найденный объект, то ничего не делаем
+		if (_Target == FoundedActor) {
+			return;
+		}
+		// Иначе, если цель отличается от найденного объекта или не было цели, то запускаем ивент на отображение полоски
+		int32 MaxHealth, CurrentHealth;
+		IStatInterface::Execute_GetCharacterHealth(FoundedActor, CurrentHealth, MaxHealth);
+		int32 MaxDurability, CurrentDurability;
+		IStatInterface::Execute_GetCharacterDurability(FoundedActor, CurrentDurability, MaxDurability);
+		int32 MonsterLevel = IStatInterface::Execute_GetCharacterLevel(FoundedActor);
+		FString MonsterName = IStatInterface::Execute_GetCharacterName(FoundedActor);
+
+		const FTargetDisplayInfo DisplayInfo = FTargetDisplayInfo(
+			MonsterName, MonsterLevel, MaxHealth, CurrentHealth, MaxDurability, CurrentDurability		
+		);
+
+		_OnDisplayTargetBar.Broadcast(DisplayInfo);
+
+		_Target = FoundedActor;
+	}
+
+
 }
 
 void AMainPlayerController::SetupInputComponent()
@@ -130,7 +185,56 @@ void AMainPlayerController::OnTouchReleased()
 	OnSetDestinationReleased();
 }
 
-// Реализация функции Pick Up одноименного интерфейса
+// ---------------------------------------------------------------
+// Реализация функций ITargetInfo интерфейса
+// ---------------------------------------------------------------
+
+void AMainPlayerController::SetTargetInfo_Implementation(const FTargetDisplayInfo& TargetInfo)
+{
+	if (TargetInfoWidget == nullptr) return;
+
+	// Назначение значений монстра к виджету полоски цели
+	TargetInfoWidget->TargetName->SetText(FText::FromString(TargetInfo.TargetName));
+	TargetInfoWidget->TargetLevel->SetText(FText::FromString(FString::FromInt(TargetInfo.TargetLevel)));
+	TargetInfoWidget->TargetHpBar->SetPercent(TargetInfo.CurrentHealth / float(TargetInfo.MaxHealth));
+	TargetInfoWidget->TargetHpBar->SetPercent(TargetInfo.CurrentHealth / float(TargetInfo.MaxHealth));
+
+	TargetInfoWidget->TargetMaxHealth->SetText(FText::FromString(FString::FromInt(TargetInfo.MaxHealth)));
+	TargetInfoWidget->TargetCurrentHealth->SetText(FText::FromString(FString::FromInt(TargetInfo.CurrentHealth)));
+
+	TargetInfoWidget->TargetMaxDurability->SetText(FText::FromString(FString::FromInt(TargetInfo.MaxDurability)));
+	TargetInfoWidget->TargetCurrentDurability->SetText(FText::FromString(FString::FromInt(TargetInfo.CurrentDurability)));
+
+	TargetInfoWidget->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AMainPlayerController::HideTargetInfo_Implementation()
+{
+	if (TargetInfoWidget == nullptr) return;
+
+	TargetInfoWidget->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void AMainPlayerController::ChangeHealthValue_Implementation(int32 CurrentHealth, int32 MaxHealth)
+{
+	TargetInfoWidget->TargetHpBar->SetPercent(CurrentHealth / float(MaxHealth));
+
+	TargetInfoWidget->TargetMaxHealth->SetText(FText::FromString(FString::FromInt(MaxHealth)));
+	TargetInfoWidget->TargetCurrentHealth->SetText(FText::FromString(FString::FromInt(CurrentHealth)));
+}
+
+void AMainPlayerController::ChangeDurabilityValue_Implementation(int32 CurrentDurability, int32 MaxDurability)
+{
+	TargetInfoWidget->TargetHpBar->SetPercent(CurrentDurability / float(MaxDurability));
+
+	TargetInfoWidget->TargetMaxDurability->SetText(FText::FromString(FString::FromInt(MaxDurability)));
+	TargetInfoWidget->TargetCurrentDurability->SetText(FText::FromString(FString::FromInt(CurrentDurability)));
+}
+
+// ---------------------------------------------------------------
+// Реализация функций Pick Up интерфейса
+// ---------------------------------------------------------------
+
 void AMainPlayerController::PickUpItem_Implementation(AWorldItem* WorldItem, FVector LocToMove)
 {
 	if (CashedPickUpCollider) {

@@ -5,6 +5,7 @@
 #include "Components/ArrowComponent.h"
 #include "BrowseProject/Monster/Components/EnemyStatComponent.h"
 #include "BrowseProject/General/Items/Loot/LootComponent.h"
+#include "BrowseProject/UI/Targeting/TargetInfoInterface.h"
 #include "Components/CapsuleComponent.h"
 
 // Sets default values
@@ -24,9 +25,6 @@ ASkeletalMeshEnemy::ASkeletalMeshEnemy()
 	_CapsuleComponent->SetCanEverAffectNavigation(false);
 	_CapsuleComponent->bDynamicObstacle = true;
 	_CapsuleComponent->SetupAttachment(RootComponent);
-
-	_CapsuleComponent->OnBeginCursorOver.AddDynamic(this, &ASkeletalMeshEnemy::BeginCursorOver);
-	_CapsuleComponent->OnEndCursorOver.AddDynamic(this, &ASkeletalMeshEnemy::EndCursorOver);
 
 	_SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>("Skeletal Mesh Component");
 	_SkeletalMeshComponent->SetRelativeLocation(FVector(0, 0, -_CapsuleComponent->GetScaledCapsuleHalfHeight()));
@@ -112,12 +110,28 @@ void ASkeletalMeshEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 }
 
-void ASkeletalMeshEnemy::BeginCursorOver(UPrimitiveComponent* TouchedActor)
+// ---------------------------------------------
+//	Переопредление методов IStatInterface
+// ---------------------------------------------
+
+int32 ASkeletalMeshEnemy::GetCharacterLevel_Implementation()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Overlapped the mob!"));
+	return _MonsterLevel;
 }
 
-void ASkeletalMeshEnemy::EndCursorOver(UPrimitiveComponent* TouchedActor)
+FString ASkeletalMeshEnemy::GetCharacterName_Implementation()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("End overlap the mob!"));
+	return _Name;
+}
+
+void ASkeletalMeshEnemy::GetCharacterHealth_Implementation(int32& CurrentHealth, int32& MaxHealth)
+{
+	CurrentHealth = _CurrentHealth;
+	MaxHealth = _MaxHealth;
+}
+
+void ASkeletalMeshEnemy::GetCharacterDurability_Implementation(int32& CurrentDurability, int32& MaxDurability)
+{
+	CurrentDurability = _CurrentDurability;
+	MaxDurability = _MaxDurability;
 }

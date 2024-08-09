@@ -8,9 +8,7 @@
 #include "Inventory.generated.h"
 
 UDELEGATE()
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAddItemToInventorySignature, UBasicItem*, AddedItem);
-UDELEGATE()
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRemoveItemFromInventorySignature, UBasicItem*, RemovedItem);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryChangedSignature);
 
 class UEquipmentItem;
 class UBasicItem;
@@ -44,17 +42,15 @@ public:
 
 	// Удаляет предмет экипировки из инвентаря по поиску
 	UFUNCTION(BlueprintNativeEvent)
-	void RemoveEquipItemFromInventoryByFind(UEquipmentItem* RemoveItem);
+	void RemoveEquipItemFromInventoryByFind(const UEquipmentItem* RemoveItem);
 
 	// Добавляет предмет экипировки в инвентарь
 	UFUNCTION(BlueprintNativeEvent)
-	EStatusOnAdd AddEquipItemToInventory(UEquipmentItem* EquipItem);
+	EStatusOnAdd AddEquipItemToInventory(const UEquipmentItem* EquipItem);
 
 	// Добавляет складываемый предмет в инвентарь
 	UFUNCTION(BlueprintNativeEvent)
-	EStatusOnAdd AddBasicItemToInventory(UBasicItem* BasicItem);
+	EStatusOnAdd AddBasicItemToInventory(const UBasicItem* BasicItem);
 
-	virtual FOnAddItemToInventorySignature& GetOnAddItemToInventorySignature() = 0;
-
-	virtual FOnRemoveItemFromInventorySignature& GetOnRemoveItemFromInventorySignature() = 0;
+	virtual FOnInventoryChangedSignature& GetOnAddItemToInventorySignature() = 0;
 };

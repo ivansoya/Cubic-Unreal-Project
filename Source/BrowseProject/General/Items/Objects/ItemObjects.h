@@ -81,20 +81,12 @@ class BROWSEPROJECT_API UEquipmentItem : public UBasicItem
 public: 
 
 	/// <summary>
-	/// Функция, которая проверяет подходит ли предмет
-	/// </summary>
-	/// <param name="Character">Класс актера, к которому привязаны интерфейсы характеристик</param>
-	/// <returns></returns>
-	UFUNCTION(BlueprintCallable)
-	bool CheckRequirements(AActor* Character);
-
-	/// <summary>
 	/// Экипировка предмета в слот в проверкой статуса слота
 	/// </summary>
 	/// <param name="Character">Класс актера, к которому привязаны интерфейсы экипировки</param>
 	/// <returns>Возвращает был одет предмет в слот</returns>
 	UFUNCTION(BlueprintCallable)
-	virtual bool EquipAtSlotCheckStatus(AActor* Character);
+	virtual bool EquipAtCharacterSlot(AActor* Character) const;
 
 	/// <summary>
 	/// Снятие предмета с персонажа
@@ -102,7 +94,7 @@ public:
 	/// <param name="Character">Класс актера, к которому привязаны интерфейсы экипировки</param>
 	/// <returns>Возвращает удалось ли снять предмет</returns>
 	UFUNCTION(BlueprintCallable)
-	virtual bool WithdrawFromCharacter(AActor* Character);
+	virtual bool WithdrawFromCharacterSlot(AActor* Character) const;
 
 	/// <summary>
 	/// Применяет все характеристики предмета к персонажу
@@ -110,7 +102,7 @@ public:
 	/// <param name="Character">Класс актера, к которому привязаны интерфейсы характеристик</param>
 	/// <returns></returns>
 	UFUNCTION(BlueprintCallable)
-	virtual bool ApplyAllStatsToCharacter(AActor* Character);
+	virtual bool ApplyAllStatsToCharacter(AActor* Character) const;
 
 	/// <summary>
 	/// Отменяет все характеристики, которые были применены к персонажу с предмета
@@ -118,13 +110,14 @@ public:
 	/// <param name="Character">Класс актера, к которому привязаны интерфейсы характеристик</param>
 	/// <returns>Возвращает результат операции</returns>
 	UFUNCTION(BlueprintCallable)
-	virtual bool AnnulItemStatsFromCharacter(AActor* Character);
+	virtual bool AnnulItemStatsFromCharacter(AActor* Character) const;
 
 	/// <summary>
 	/// Константная функция, возвращающая тип слота
 	/// </summary>
 	/// <returns>Тип слота в формате ESlotType</returns>
-	ESlotType GetItemSlot() const;
+	/// UFUNCTION(BlueprintCallable)
+	virtual ESlotType GetItemSlot() const;
 
 public:
 
@@ -142,6 +135,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "List of Requirements"))
 	TMap<EStatKey, int> _ItemRequirements;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
+	ESlotType _Slot;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item Data Row"))
+	const FEquipmentDataRow* _ItemData;
 
 private:
 
@@ -164,10 +163,10 @@ public:
 public:
 
 	// Переопределение функции для одевания предмета на персонажа
-	virtual bool EquipAtSlotCheckStatus(AActor* Character) override;
+	virtual bool EquipAtCharacterSlot(AActor* Character) const override;
 
 	// Переопределение функции для снятия предмета с персонажа
-	virtual bool WithdrawFromCharacter(AActor* Character) override;
+	virtual bool WithdrawFromCharacterSlot(AActor* Character) const override;
 
 	// Переопределение функции применение характеристик к персонажу
 	//virtual bool ApplyAllStatsToCharacter(AActor* Character) override;
@@ -186,9 +185,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Stat Value"))
 	int _ArmorValueStat;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
-	ESlotType _Slot;
-
 private:
 
 };
@@ -197,7 +193,7 @@ private:
 /// Класс дайсов
 /// </summary>
 UCLASS(Blueprintable)
-class BROWSEPROJECT_API UDice : public UEquipmentItem, public IRoll
+class BROWSEPROJECT_API UDice : public UEquipmentItem
 {
 
 	GENERATED_BODY()
@@ -205,25 +201,22 @@ class BROWSEPROJECT_API UDice : public UEquipmentItem, public IRoll
 public:
 
 	// Переопределение функции для одевания предмета на персонажа
-	virtual bool EquipAtSlotCheckStatus(AActor* Character) override;
+	virtual bool EquipAtCharacterSlot(AActor* Character) const override;
 
 	// Переопределение функции для снятия предмета с персонажа
-	virtual bool WithdrawFromCharacter(AActor* Character) override;
+	virtual bool WithdrawFromCharacterSlot(AActor* Character) const override;
 
 	// Функция для считывания данных из структуры
 	virtual bool SetDataToObject(FItemDataRow* Data) override;
 
 	// Переопределение функции ролла значений кубика
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	int32 Roll();
+	UFUNCTION(BlueprintCallable)
+	int32 Roll() const;
 
 private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Dice Stats", meta = (DisplayName = "Map of Facets on Dice"))
 	TArray<int32> _Facets;
-
-	UPROPERTY(VisibleAnywhere, Category = "Dice Stats", meta = (DisplayName = "Slot"))
-	EDice _Slot;
 };
 
 /// <summary>
@@ -238,8 +231,8 @@ class BROWSEPROJECT_API UWeapon : public UEquipmentItem
 
 public:
 
-	UPROPERTY(VisibleAnywhere, Category = "Item Appearance", Meta = (DisplayName = "Weapon Mesh"))
-	UStaticMesh* WeaponMesh;
+	UPROPERTY(VisibleAnywhere, Category = "Item Appearance", Meta = (DisplayName = "Weapon Appearance"))
+	FWeaponAppearance WeaponAppearance;
 
 public:
 
@@ -248,76 +241,11 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Weapon Additional Slot"))
-	ESlotType _AdditionalSlot;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Weapon Damage"))
 	FWeaponDamage _WeaponDamage;
 
-private:
-
-};
-
-/// <summary>
-/// Класс для друручного оружия
-/// Обладает дополнительным слотом для надевания.
-/// Блокирует второй слот при надевании.
-/// </summary>
-UCLASS(Blueprintable)
-class BROWSEPROJECT_API UTwoHanded : public UWeapon
-{
-
-	GENERATED_BODY()
-
-public:
-
-
-protected:
-
-
-private:
-
-};
-
-/// <summary>
-/// Класс для полуторного оружия
-/// Обладает дополнительным слотом для надевания.
-/// Блокирует второй слот для надевания орудия класса полуторный или двуручный.
-/// </summary>
-UCLASS(Blueprintable)
-class BROWSEPROJECT_API USesquialteral : public UWeapon
-{
-
-	GENERATED_BODY()
-
-public:
-
-
-protected:
-
-
-
-private:
-
-};
-
-/// <summary>
-/// Класс для одноручного оружия
-/// Обладает дополнительным слотом для надевания.
-/// </summary>
-UCLASS(Blueprintable)
-class BROWSEPROJECT_API UOneHanded : public UWeapon
-{
-
-	GENERATED_BODY()
-
-public:
-
-
-
-protected:
-
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Weapon Class"))
+	EWeaponType _WeaponClass;
 
 private:
 
@@ -334,11 +262,7 @@ class BROWSEPROJECT_API UJewelry : public UEquipmentItem
 
 public:
 
-
 protected:
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Stats", Meta = (DisplayName = "Item Slot"))
-	ESlotType _Slot;
 
 private:
 

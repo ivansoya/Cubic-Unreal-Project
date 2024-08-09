@@ -22,7 +22,7 @@ struct FBasicItemSlotInv {
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UBasicItem* Item;
+	const UBasicItem* Item;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 Count;
@@ -69,7 +69,7 @@ private:
 	/// Список предметов экипировки, которые находятся в инвентаре у персонажа и при этом не одеты на персонажа 
 	/// </summary>
 	UPROPERTY(VisibleAnywhere, Category = "Inventory", meta = (DisplayName = "List of Equip Items"))
-	TArray<UEquipmentItem*> _EquipmentItemList;
+	TArray<const UEquipmentItem*> _EquipmentItemList;
 
 protected:
 	// Called when the game starts
@@ -84,7 +84,7 @@ public:
 	/// </summary>
 	/// <param name="Item">Предмет экипировки</param>
 	UFUNCTION(BlueprintCallable)
-	void AddEquipItemAtList(UEquipmentItem* Item);
+	void AddEquipItemAtList(const UEquipmentItem* Item);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetCountOfEquipItems() const;
@@ -93,8 +93,8 @@ public:
 	/// Выводит список всех предметов экипировки
 	/// </summary>
 	/// <returns></returns>
-	UFUNCTION(BlueprintCallable)
-	TArray<UEquipmentItem*> GetEquipmentItemList() const;
+	//UFUNCTION(BlueprintCallable)
+	const TArray<const UEquipmentItem*>& GetEquipmentItemList() const;
 
 	/// <summary>
 	/// Функция возвращает предмет экипировки из списка по номеру.
@@ -102,18 +102,18 @@ public:
 	/// <param name="Num">Номер в списке экипировки</param>
 	/// <returns>Указатель на предмет экипировки</returns>
 	UFUNCTION(BlueprintCallable, BlueprintPure)
-	UEquipmentItem* GetEquipmentItemFromListByIndex(int32 Index) const;
+	const UEquipmentItem* GetEquipmentItemFromListByIndex(int32 Index) const;
 
 	/// <summary>
 	/// Удаляет предмет экипировки из списка по номеру 
 	/// </summary>
 	/// <returns>Указатель на предмет экипировки</returns>
-	UEquipmentItem* RemoveEquipmentItemFromListByIndex(int32 Index);
+	const UEquipmentItem* RemoveEquipmentItemFromListByIndex(int32 Index);
 
 	/// <summary>
 	/// Удаляет предмет экипировки из списка через поиск предмета
 	/// </summary>
-	bool RemoveEquipmentItemFromListByFind(UEquipmentItem* RemoveItem);
+	bool RemoveEquipmentItemFromListByFind(const UEquipmentItem* RemoveItem);
 
 	/// <summary>
 	/// Возвращает делегат отображение предметов
