@@ -212,3 +212,46 @@ bool UWeapon::SetDataToObject(FItemDataRow* Data)
 	return true;
 }
 
+// Переопределение функции для одевания предмета на персонажа
+bool UWeapon::EquipAtCharacterSlot(AActor* Character) const
+{
+	// Проверка на нужные интерфейсы у персонажа
+	auto eq_t = Cast<IEquipment>(Character);
+	auto stat_t = Cast<IStatInterface>(Character);
+	if ((eq_t || stat_t) == false) {
+		return false;
+	}
+	// Одеваем предмет в слот
+	IEquipment::Execute_EquipItemOnCharacter(Character, this, ESlotType::WEAPON);
+	// Меняем модель оружия в правой руке у персонажа
+	IEquipment::Execute_SetWeaponMeshAtSocket(Character, WeaponAppearance.RightHandWeaponMesh, WeaponAppearance.RightHandWeaponSocketArmed, true);
+	// Если оружие предполагает использование в обоих руках, то также меням оружия и в левой руке
+	if (WeaponAppearance.IsPaired == true) {
+		IEquipment::Execute_SetWeaponMeshAtSocket(Character, WeaponAppearance.LeftHandWeaponMesh, WeaponAppearance.LeftHandWeaponSocketArmed, false);
+	}
+	// Установка статов к персонажу
+	ApplyAllStatsToCharacter(Character);
+	return true;
+}
+
+// Переопределение функции для снятия предмета с персонажа
+bool UWeapon::WithdrawFromCharacterSlot(AActor* Character) const
+{
+	// Проверка на нужные интерфейсы у персонажа
+	auto eq_t = Cast<IEquipment>(Character);
+	auto stat_t = Cast<IStatInterface>(Character);
+	if ((eq_t || stat_t) == false) {
+		return false;
+	}
+	// Снимаем предмет из слота
+	IEquipment::Execute_WithdrawItemFromCharacterSlot(Character, ESlotType::WEAPON);
+	// Убираем модели оружий из рук персонажа
+	IEquipment::Execute_SetWeaponMeshAtSocket(Character, nullptr, "NONE_socket", true);
+	if (WeaponAppearance.IsPaired == true) {
+		IEquipment::Execute_SetWeaponMeshAtSocket(Character, nullptr, "NONE_socket", false);
+	}
+	// Установка статов к персонажу
+	AnnulItemStatsFromCharacter(Character);
+	return true;
+}
+

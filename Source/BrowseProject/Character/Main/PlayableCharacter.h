@@ -39,6 +39,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Skeletal Meshes", meta = (DisplayName = "Character Parts List", AllowPrivateAccess = "true"))
 	TMap<ESlotType, USkeletalMeshComponent*> _CharacterParts;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Skeletal Meshes", meta = (DisplayName = "Left Weapon", AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> _LeftWeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Skeletal Meshes", meta = (DisplayName = "Right Weapon", AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> _RightWeaponMesh;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Character Components", meta = (DisplayName = "Spring Arm", AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> _SpringArm;
 
@@ -211,6 +217,17 @@ public:
 	/// <returns></returns>
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	bool WithdrawItemFromCharacterSlot(ESlotType Slot);
+
+	/// <summary>
+	/// A function that sets the weapon mesh to the specified socket
+	/// </summary>
+	/// <param name="WeaponMesh">:: Mesh of Equipped weapon</param>
+	/// <param name="ArmedWeaponSocket">:: Socket where mesh will be displayed when the player is armed</param>
+	/// <param name="UnarmedWeaponSocket">:: Socket where mesh will be displayed when the player is unarmed</param>
+	/// <param name="IsRight">:: true = right weapon mesh; false = left weapon mesh</param>
+	/// <returns></returns>
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool SetWeaponMeshAtSocket(UStaticMesh* WeaponMesh, const FName& WeaponSocket, bool IsRight);
 
 	// Геттеры делегатов
 	virtual FOnEquipItemSignature& GetOnEquipItemSignature() override;

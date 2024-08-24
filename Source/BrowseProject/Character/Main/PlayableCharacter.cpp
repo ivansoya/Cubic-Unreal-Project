@@ -6,6 +6,7 @@
 #include "BrowseProject/Character/Components/InventoryComponent.h"
 #include "BrowseProject/Character/Components/StatComponent.h"
 #include "BrowseProject/General/Items/Objects/ItemObjects.h"
+#include "BrowseProject/General/MeshSockets.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
@@ -32,7 +33,7 @@ APlayableCharacter::APlayableCharacter()
 	_SpringArm->TargetArmLength = 1400;
 	_SpringArm->bUsePawnControlRotation = false;
 	_SpringArm->bInheritPitch = false;
-	_SpringArm->bInheritRoll = false;
+	_SpringArm->bInheritRoll = false; 
 	_SpringArm->bInheritYaw = false;
 	_SpringArm->SetupAttachment(RootComponent);
 
@@ -66,7 +67,7 @@ APlayableCharacter::APlayableCharacter()
 			SK_Mesh->bCastDynamicShadow = true;
 			SK_Mesh->bAffectDynamicIndirectLighting = true;
 			SK_Mesh->PrimaryComponentTick.TickGroup = TG_PrePhysics;
-			static FName MeshCollisionProfileName(TEXT("NoCollision"));
+			FName MeshCollisionProfileName(TEXT("NoCollision"));
 			SK_Mesh->SetCollisionProfileName(MeshCollisionProfileName);
 			SK_Mesh->SetGenerateOverlapEvents(false);
 			SK_Mesh->SetCanEverAffectNavigation(false);
@@ -75,6 +76,45 @@ APlayableCharacter::APlayableCharacter()
 			SK_Mesh->SetupAttachment(_CharacterPartsSceneComponent);
 			_CharacterParts.Add(TPair<ESlotType, USkeletalMeshComponent*>(Slot.Key, SK_Mesh));
 		}
+	}
+
+	// Добавляем компоненты мешей для оружий персонажу
+	auto head_t = _CharacterParts[ESlotType::HEAD];
+	if (head_t) {
+		// Создание оружия в левой руке
+		_LeftWeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("Left Weapon");
+		_LeftWeaponMesh->bCastDynamicShadow = true;
+		_LeftWeaponMesh->bAffectDynamicIndirectLighting = true;
+		_LeftWeaponMesh->SetCollisionProfileName(TEXT("NoCollision"));
+		_LeftWeaponMesh->SetGenerateOverlapEvents(false);
+		_LeftWeaponMesh->SetCanEverAffectNavigation(false);
+
+		// Создание оружия в правой руке
+		_RightWeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>("Right Weapon");
+		_RightWeaponMesh->bCastDynamicShadow = true;
+		_RightWeaponMesh->bAffectDynamicIndirectLighting = true;
+		_RightWeaponMesh->SetCollisionProfileName(TEXT("NoCollision"));
+		_RightWeaponMesh->SetGenerateOverlapEvents(false);
+		_RightWeaponMesh->SetCanEverAffectNavigation(false);
+
+		// Привязка оружия в правой руке к дефолтному сокету
+		FName RightSocketName = UWeaponSocketNames::GetSocketOptions()[0];
+		if (head_t->DoesSocketExist(RightSocketName)) {
+			_RightWeaponMesh->SetupAttachment(head_t, RightSocketName);
+		}
+		else {
+			_RightWeaponMesh->SetupAttachment(head_t);
+		}
+
+		// Привязка оружия в левой руке к дефолтному сокету
+		FName LeftSocketName = UWeaponSocketNames::GetSocketOptions()[1];
+		if (head_t->DoesSocketExist(LeftSocketName)) {
+			_LeftWeaponMesh->SetupAttachment(head_t, LeftSocketName);
+		}
+		else {
+			_LeftWeaponMesh->SetupAttachment(head_t);
+		}
+		
 	}
 
 	_InventoryComponent = CreateDefaultSubobject<UInventoryComponent>("Inventory Component");
@@ -251,6 +291,38 @@ bool APlayableCharacter::WithdrawItemFromCharacterSlot_Implementation(ESlotType 
 		// Вызываем делегат обновления инвентаря
 		_OnInventoryChanged.Broadcast();
 		return true;
+	}
+}
+
+bool APlayableCharacter::SetWeaponMeshAtSocket_Implementation(UStaticMesh* WeaponMesh, const FName& WeaponSocket, bool IsRight)
+{
+	// Определение, с каким компонентом происходит взаимодействие
+	UStaticMeshComponent* t_WeaponMeshComponent;
+	if (IsRight == true) {
+		t_WeaponMeshComponent = _RightWeaponMesh;
+	}
+	else {
+		t_WeaponMeshComponent = _LeftWeaponMesh;
+	}
+	// Была ли передана модель оружия
+	if (WeaponMesh == nullptr) {
+		t_WeaponMeshComponent->SetVisibility(false);
+		return true;
+	}
+	auto t_Parent = t_WeaponMeshComponent->GetAttachParent();
+
+	// Изменение модели компонента и сокета, к которому она привязана
+	t_WeaponMeshComponent->SetStaticMesh(WeaponMesh);
+	t_WeaponMeshComponent->SetVisibility(true);
+	// Поиск
+	if (t_Parent->DoesSocketExist(WeaponSocket) == true) {
+		t_WeaponMeshComponent->AttachToComponent(t_Parent, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), WeaponSocket);
+		return true;
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(1, 5.0f, FColor::Red, TEXT("Weapon Socket doesn't exist!"));
+		//UE_LOG(Debug, Warning, TEXT("Weapon Socket doesn't exist!"));
+		return false;
 	}
 }
 

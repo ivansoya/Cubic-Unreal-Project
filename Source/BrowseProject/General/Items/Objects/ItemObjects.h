@@ -223,7 +223,7 @@ private:
 /// Абстрактный класс для оружия.
 /// Наследуемый классы оружия - игровые объекты этого оружия.
 /// </summary>
-UCLASS(NotBlueprintable, Abstract)
+UCLASS(Blueprintable)
 class BROWSEPROJECT_API UWeapon : public UEquipmentItem
 {
 
@@ -238,6 +238,12 @@ public:
 
 	// Функция для считывания данных из структуры
 	bool SetDataToObject(FItemDataRow* Data) override;
+
+	// Переопределение функции для одевания предмета на персонажа
+	virtual bool EquipAtCharacterSlot(AActor* Character) const override;
+
+	// Переопределение функции для снятия предмета с персонажа
+	virtual bool WithdrawFromCharacterSlot(AActor* Character) const override;
 
 protected:
 

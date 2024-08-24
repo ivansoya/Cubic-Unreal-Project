@@ -40,6 +40,9 @@ public:
 	bool EquipItemOnCharacter(const UEquipmentItem* Item, ESlotType Slot);
 
 	UFUNCTION(BlueprintNativeEvent)
+	bool SetWeaponMeshAtSocket(UStaticMesh* WeaponMesh, const FName& WeaponSocket, bool IsRight);
+
+	UFUNCTION(BlueprintNativeEvent)
 	bool WithdrawItemFromCharacterSlot(ESlotType Slot);
 
 	UFUNCTION(BlueprintNativeEvent)

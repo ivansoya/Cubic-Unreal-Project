@@ -8,6 +8,7 @@
 #include "BrowseProject/General/FIcon.h"
 #include "BrowseProject/General/Items/System/Rarity.h"
 #include "BrowseProject/General/Items/Utility/WeaponDamage.h"
+#include "BrowseProject/General/MeshSockets.h"
 #include "ItemData.generated.h"
 
 /// <summary>
@@ -39,51 +40,30 @@ struct BROWSEPROJECT_API FAffixData
 	int32 Tier;
 };
 
-UCLASS()
-class BROWSEPROJECT_API UWeaponSocketNames : public UObject
-{
-	GENERATED_BODY()
-
-	UFUNCTION(CallInEditor, BlueprintCallable)
-	static TArray<FName> GetSocketOptions()
-	{
-		return {
-			"Soc_RightHand",
-			"Soc_LeftHand",
-			"Soc_ShieldArmed",
-			"Soc_ShieldHided",
-			"Soc_RightTwoHanded_Hided",
-			"Soc_LeftTwoHanded_Hided",
-			"Soc_RightHand_Hided",
-			"Soc_LeftHand_Hided",
-		};
-	}
-};
-
 USTRUCT(BlueprintType)
 struct BROWSEPROJECT_API FWeaponAppearance
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Is Weapon is Double?"))
-	bool IsDouble;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Is Weapon Paired?"))
+	bool IsPaired;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Static Mesh of RIGHT Hand Weapon"))
 	TObjectPtr<UStaticMesh> RightHandWeaponMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket At Hands of RIGHT Hand Weapon", DisplayAfter = "RightHandWeaponMesh", GetOptions = "WeaponSocketNames.GetSocketOptions"))
-	FName RightHandWeaponSocketInHands;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Armed of RIGHT Hand Weapon", DisplayAfter = "RightHandWeaponMesh", GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	FName RightHandWeaponSocketArmed;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Hided of RIGHT Hand Weapon", DisplayAfter = "RightHandWeaponSocketInHands", GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Hided of RIGHT Hand Weapon", DisplayAfter = "RightHandWeaponSocketArmed", GetOptions = "WeaponSocketNames.GetSocketOptions"))
 	FName RightHandWeaponSocketHided;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Static Mesh of LEFT Hand Weapon", EditCondition = "IsDouble == true", EditConditionHides))
 	TObjectPtr<UStaticMesh> LeftHandWeaponMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket At Hands of LEFT Hand Weapon", DisplayAfter = "LeftHandWeaponMesh", EditCondition = "IsDouble == true", EditConditionHides, GetOptions = "WeaponSocketNames.GetSocketOptions"))
-	FName LeftHandWeaponSocketInHands;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Armed of LEFT Hand Weapon", DisplayAfter = "LeftHandWeaponMesh", EditCondition = "IsDouble == true", EditConditionHides, GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	FName LeftHandWeaponSocketArmed;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Hided of LEFT Hand Weapon", DisplayAfter = "LeftHandWeaponSocketInHands", EditCondition = "IsDouble == true", EditConditionHides, GetOptions = "WeaponSocketNames.GetSocketOptions"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (DisplayName = "Socket Hided of LEFT Hand Weapon", DisplayAfter = "LeftHandWeaponSocketArmed", EditCondition = "IsDouble == true", EditConditionHides, GetOptions = "WeaponSocketNames.GetSocketOptions"))
 	FName LeftHandWeaponSocketHided;
 
 };
